@@ -36,11 +36,16 @@ export const LeadCard: React.FC<LeadCardProps> = ({
             <div className="flex justify-between items-start mb-2">
                 <div>
                     <h4 className={`font-bold leading-none text-white ${isCompact ? 'text-xs' : 'text-sm'}`}>
-                        {lead.first_name} {lead.last_name}
+                        {lead.first_name || lead.last_name ? `${lead.first_name} ${lead.last_name}` : 'New Lead'}
                     </h4>
-                    <p className="text-[10px] text-muted font-mono uppercase mt-1.5 tracking-tight shrink-0">
-                        {lead.company}
+                    <p className="text-[10px] text-accent/70 font-mono mt-1.5 tracking-tight shrink-0">
+                        {lead.phone}
                     </p>
+                    {lead.company && (
+                        <p className="text-[10px] text-muted font-mono uppercase mt-1 tracking-tight shrink-0">
+                            {lead.company}
+                        </p>
+                    )}
                 </div>
                 <Badge variant="temperature" value={lead.temperature} />
             </div>

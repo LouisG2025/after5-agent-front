@@ -12,6 +12,7 @@ import {
 } from 'lucide-react'
 
 import { SkeletonCard } from '../components/ui/SkeletonCard'
+import { LeadDetail } from '../components/leads/LeadDetail'
 
 interface OverviewProps {
     leads: Lead[]
@@ -81,11 +82,12 @@ const Overview: React.FC<OverviewProps> = ({ leads, isLoading }) => {
                 </div>
 
                 <div className="lg:col-span-2 h-[600px] bg-bg-card rounded-2xl border border-border overflow-hidden flex flex-col shadow-2xl">
-                    {selectedLeadId ? (
-                        <div className="p-8 text-center text-muted italic">
-                            {/* LeadDetail component will go here */}
-                            LeadDetail implementation coming next...
-                        </div>
+                    {selectedLeadId && leads.find(l => l.id === selectedLeadId) ? (
+                        <LeadDetail
+                            lead={leads.find(l => l.id === selectedLeadId)!}
+                            onClose={() => setSelectedLeadId(null)}
+                            refetch={() => { }}
+                        />
                     ) : (
                         <div className="m-auto flex flex-col items-center text-center p-8">
                             <div className="w-20 h-20 bg-bg-base rounded-full flex items-center justify-center border border-border border-dashed mb-6 opacity-20">
