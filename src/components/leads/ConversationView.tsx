@@ -6,16 +6,18 @@ import { MessageSquare } from 'lucide-react'
 interface ConversationViewProps {
     messages: Message[]
     isLoading?: boolean
-    leadName?: string
-    currentState?: string
+    lead: Lead
+    state: ConversationState | null
 }
 
 export const ConversationView: React.FC<ConversationViewProps> = ({
     messages,
     isLoading,
-    leadName = 'Lead',
-    currentState = 'Opening'
+    lead,
+    state
 }) => {
+    const leadName = lead.first_name || 'Lead'
+    const currentState = state?.current_state || 'Opening'
     const scrollRef = useRef<HTMLDivElement>(null)
 
     useEffect(() => {
