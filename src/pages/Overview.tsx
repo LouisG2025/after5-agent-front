@@ -9,9 +9,10 @@ import {
     MessageSquare,
     CalendarCheck,
     TrendingUp,
-    LayoutDashboard,
     DollarSign,
-    Zap
+    Zap,
+    Cpu,
+    Activity
 } from 'lucide-react'
 
 import { SkeletonCard } from '../components/ui/SkeletonCard'
@@ -28,10 +29,21 @@ const Overview: React.FC<OverviewProps> = ({ leads, isLoading }) => {
 
     useEffect(() => {
         const fetchSessions = async () => {
-            const { data } = await supabase.from('llm_sessions').select('*')
+            const { data } = await supabase.from('llm_sessions').select('*').order('created_at', { ascending: false })
             if (data) setSessions(data)
         }
         fetchSessions()
+
+        const channel = supabase
+            .channel('llm_sessions_realtime')
+            .on('postgres_changes' as any, { event: 'INSERT', table: 'llm_sessions' }, (payload: any) => {
+                setSessions(prev => [payload.new as LLMSession, ...prev])
+            })
+            .subscribe()
+
+        return () => {
+            supabase.removeChannel(channel)
+        }
     }, [])
 
     const stats = useMemo(() => {
@@ -46,18 +58,21 @@ const Overview: React.FC<OverviewProps> = ({ leads, isLoading }) => {
             : 0
 
         return [
-            { label: 'Total Leads', value: total, icon: Users, color: 'text-blue-400', bg: 'bg-blue-400/10' },
-            { label: 'Active Now', value: active, icon: MessageSquare, color: 'text-amber-400', bg: 'bg-amber-400/10', pulse: active > 0 },
-            { label: 'Meetings Booked', value: booked, icon: CalendarCheck, color: 'text-accent', bg: 'bg-accent/10' },
-            { label: 'Conversion Rate', value: `${rate}%`, icon: TrendingUp, color: 'text-rose-400', bg: 'bg-rose-400/10' },
-            { label: 'Total AI Cost', value: `$${totalCost.toFixed(2)}`, icon: DollarSign, color: 'text-emerald-400', bg: 'bg-emerald-400/10' },
-            { label: 'Avg AI Latency', value: `${avgLatency}ms`, icon: Zap, color: 'text-purple-400', bg: 'bg-purple-400/10' },
+            { label: 'Total Leads', value: total, icon: Users, color: 'text-blue-400' },
+            { label: 'Active Now', value: active, icon: MessageSquare, color: 'text-amber-400', pulse: active > 0 },
+            { label: 'Meetings Booked', value: booked, icon: CalendarCheck, color: 'text-accent' },
+            { label: 'Conv. Rate', value: `${rate}%`, icon: TrendingUp, color: 'text-rose-400' },
+            { label: 'AI Cost', value: `$${totalCost.toFixed(3)}`, icon: DollarSign, color: 'text-emerald-400' },
+            { label: 'AI Latency', value: `${avgLatency}ms`, icon: Zap, color: 'text-purple-400' },
         ]
     }, [leads, sessions])
 
+    const selectedLead = useMemo(() => leads.find(l => l.id === selectedLeadId), [leads, selectedLeadId])
+
     return (
-        <div className="p-8 space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6">
+        <div className="p-8 space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700 max-w-[1600px] mx-auto">
+            {/* Header Stats Row */}
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
                 {isLoading
                     ? Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)
                     : stats.map((s, i) => (
@@ -73,15 +88,20 @@ const Overview: React.FC<OverviewProps> = ({ leads, isLoading }) => {
                 }
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-                <div className="lg:col-span-1 border-r border-border pr-8 space-y-6">
-                    <h2 className="text-[10px] font-mono uppercase tracking-[0.2em] text-muted flex items-center gap-2">
-                        <Users size={14} /> Recent Leads
-                    </h2>
-                    <div className="space-y-3">
+            {/* Main Interactive Grid */}
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
+                {/* Left: Lead Sidebar */}
+                <div className="lg:col-span-1 space-y-6">
+                    <div className="flex items-center justify-between">
+                        <h2 className="text-[10px] font-mono uppercase tracking-[0.2em] text-muted flex items-center gap-2">
+                            <Users size={14} className="text-accent" /> Recent Activity
+                        </h2>
+                        <span className="text-[9px] font-bold px-2 py-0.5 bg-accent/10 text-accent rounded-full uppercase tracking-widest">Live</span>
+                    </div>
+                    <div className="space-y-3 max-h-[700px] overflow-y-auto pr-2 custom-scrollbar">
                         {isLoading
                             ? Array.from({ length: 5 }).map((_, i) => <SkeletonCard key={i} lines={2} height="h-20" />)
-                            : leads.slice(0, 8).map(lead => (
+                            : leads.map(lead => (
                                 <LeadCard
                                     key={lead.id}
                                     lead={lead}
@@ -91,37 +111,55 @@ const Overview: React.FC<OverviewProps> = ({ leads, isLoading }) => {
                                 />
                             ))
                         }
-                        {leads.length === 0 && (
-                            <div className="p-12 bg-white/5 rounded-2xl border border-border border-dashed flex flex-col items-center opacity-30">
-                                <Users size={32} />
-                                <p className="mt-4 text-xs font-medium">No leads yet</p>
-                            </div>
-                        )}
                     </div>
                 </div>
 
-                <div className="lg:col-span-2 h-[600px] bg-bg-card rounded-2xl border border-border overflow-hidden flex flex-col shadow-2xl">
-                    {selectedLeadId && leads.find(l => l.id === selectedLeadId) ? (
+                {/* Right: Detailed View or Intelligence Placeholder */}
+                <div className="lg:col-span-3 h-[750px] bg-bg-card rounded-[32px] border border-border overflow-hidden flex flex-col shadow-2xl relative">
+                    {selectedLead ? (
                         <LeadDetail
-                            lead={leads.find(l => l.id === selectedLeadId)!}
+                            lead={selectedLead}
                             onClose={() => setSelectedLeadId(null)}
                             refetch={() => { }}
                         />
                     ) : (
-                        <div className="m-auto flex flex-col items-center text-center p-8">
-                            <div className="w-20 h-20 bg-bg-base rounded-full flex items-center justify-center border border-border border-dashed mb-6 opacity-20">
-                                <LayoutDashboard className="text-accent" size={32} />
+                        <div className="m-auto flex flex-col items-center text-center p-12 max-w-lg">
+                            <div className="relative mb-10">
+                                <div className="absolute inset-0 bg-accent/20 blur-3xl rounded-full scale-150 animate-pulse"></div>
+                                <div className="relative w-24 h-24 bg-bg-base rounded-[2rem] flex items-center justify-center border border-accent/20 shadow-2xl rotate-3 transform transition-transform hover:rotate-0 duration-500">
+                                    <Cpu className="text-accent" size={42} />
+                                </div>
+                                <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-bg-elevated rounded-xl border border-border flex items-center justify-center -rotate-12 shadow-xl">
+                                    <Activity className="text-purple-400" size={18} />
+                                </div>
                             </div>
-                            <h3 className="text-lg font-bold text-white">Select a lead</h3>
-                            <p className="text-muted text-sm mt-2 max-w-xs leading-relaxed">
-                                Pick a lead from the recent activity to monitor Albert's conversation in real-time.
+                            <h3 className="text-2xl font-bold text-white tracking-tight">Intelligence Monitoring</h3>
+                            <p className="text-muted text-sm mt-4 leading-relaxed">
+                                Select a lead from the activity panel to initialize real-time Albert Pulse monitoring.
+                                View live conversation threads, BANT signal analysis, and AI reasoning logs.
                             </p>
+                            <div className="grid grid-cols-2 gap-4 mt-10 w-full text-left">
+                                <div className="p-4 bg-white/5 rounded-2xl border border-border/50">
+                                    <p className="text-[10px] font-mono text-accent uppercase tracking-widest mb-1">Observability</p>
+                                    <p className="text-[11px] text-muted leading-tight">Monitor model latency and token costs per interaction.</p>
+                                </div>
+                                <div className="p-4 bg-white/5 rounded-2xl border border-border/50">
+                                    <p className="text-[10px] font-mono text-purple-400 uppercase tracking-widest mb-1">Synthesis</p>
+                                    <p className="text-[11px] text-muted leading-tight">Albert extracts qualification facts in real-time.</p>
+                                </div>
+                            </div>
                         </div>
                     )}
                 </div>
             </div>
 
-            <div className="pt-4">
+            {/* Bottom Row: System Pulse */}
+            <div className="pt-6">
+                <div className="flex items-center justify-between mb-6">
+                    <h2 className="text-[10px] font-mono uppercase tracking-[0.2em] text-muted flex items-center gap-2">
+                        <Activity size={14} className="text-emerald-400" /> System Pulse Feed
+                    </h2>
+                </div>
                 <ActivityFeed />
             </div>
         </div>

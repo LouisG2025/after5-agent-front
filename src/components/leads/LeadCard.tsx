@@ -1,6 +1,7 @@
 import React from 'react'
 import type { Lead, ConversationState } from '../../types'
 import { Badge } from '../ui/Badge'
+import { Phone, Building2, Target, Wallet, UserCheck, Clock } from 'lucide-react'
 
 interface LeadCardProps {
     lead: Lead
@@ -34,20 +35,26 @@ export const LeadCard: React.FC<LeadCardProps> = ({
             {active && <div className="absolute left-0 top-0 bottom-0 w-1 bg-accent shadow-[0_0_10px_rgba(46,255,161,0.5)]"></div>}
 
             <div className="flex justify-between items-start mb-2">
-                <div>
-                    <h4 className={`font-bold leading-none text-white ${isCompact ? 'text-xs' : 'text-sm'}`}>
+                <div className="min-w-0">
+                    <h4 className={`font-bold leading-none text-white truncate ${isCompact ? 'text-xs' : 'text-sm'}`}>
                         {lead.first_name || lead.last_name ? `${lead.first_name} ${lead.last_name}` : 'New Lead'}
                     </h4>
-                    <p className="text-[10px] text-accent/70 font-mono mt-1.5 tracking-tight shrink-0">
-                        {lead.phone}
-                    </p>
-                    {lead.company && (
-                        <p className="text-[10px] text-muted font-mono uppercase mt-1 tracking-tight shrink-0">
-                            {lead.company}
+                    <div className="flex items-center gap-1.5 mt-1.5">
+                        <Phone size={10} className="text-accent/50" />
+                        <p className="text-[10px] text-accent/70 font-mono tracking-tight truncate">
+                            {lead.phone}
                         </p>
+                    </div>
+                    {lead.company && (
+                        <div className="flex items-center gap-1.5 mt-1">
+                            <Building2 size={10} className="text-muted/50" />
+                            <p className="text-[10px] text-muted font-mono uppercase tracking-tight truncate">
+                                {lead.company}
+                            </p>
+                        </div>
                     )}
                 </div>
-                <Badge variant="temperature" value={lead.temperature} />
+                {!isCompact && <Badge variant="temperature" value={lead.temperature} />}
             </div>
 
             {!isCompact && (
@@ -58,23 +65,32 @@ export const LeadCard: React.FC<LeadCardProps> = ({
             )}
 
             <div className="flex items-center justify-between mt-4">
-                <span className="text-[9px] font-mono text-muted uppercase tracking-tighter">
-                    {Math.floor((new Date().getTime() - new Date(lead.created_at).getTime()) / 60000)}m ago
-                </span>
+                <div className="flex items-center gap-2">
+                    <span className="text-[9px] font-mono text-muted uppercase tracking-tighter">
+                        {Math.floor((new Date().getTime() - new Date(lead.created_at).getTime()) / 60000)}m ago
+                    </span>
+                    {/* BANT Quick Indicators */}
+                    {state && (
+                        <div className="flex items-center gap-1 ml-2">
+                            <Wallet size={10} className={state.bant_budget ? 'text-accent' : 'text-muted/20'} />
+                            <UserCheck size={10} className={state.bant_authority ? 'text-accent' : 'text-muted/20'} />
+                            <Target size={10} className={state.bant_need ? 'text-accent' : 'text-muted/20'} />
+                            <Clock size={10} className={state.bant_timeline ? 'text-accent' : 'text-muted/20'} />
+                        </div>
+                    )}
+                </div>
                 {lead.outcome === 'In Progress' && (
                     <div className="w-1.5 h-1.5 rounded-full bg-accent pulse-dot"></div>
                 )}
             </div>
 
-            {!isCompact && (
-                <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white/5">
-                    <div
-                        className={`h-full transition-all duration-1000 ${lead.signal_score >= 7 ? 'bg-accent' : lead.signal_score >= 4 ? 'bg-amber-500' : 'bg-red-500'
-                            }`}
-                        style={{ width: `${lead.signal_score * 10}%` }}
-                    ></div>
-                </div>
-            )}
+            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white/5">
+                <div
+                    className={`h-full transition-all duration-1000 ${lead.signal_score >= 7 ? 'bg-accent' : lead.signal_score >= 4 ? 'bg-amber-500' : 'bg-red-500'
+                        }`}
+                    style={{ width: `${lead.signal_score * 10}%` }}
+                ></div>
+            </div>
         </button>
     )
 }
