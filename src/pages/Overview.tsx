@@ -16,6 +16,7 @@ import {
 
 import { SkeletonCard } from '../components/ui/SkeletonCard'
 import { LeadDetail } from '../components/leads/LeadDetail'
+import { PanelLeftClose, PanelLeftOpen, PanelRightClose, PanelRightOpen } from 'lucide-react'
 
 interface OverviewProps {
     leads: Lead[]
@@ -25,6 +26,8 @@ interface OverviewProps {
 const Overview: React.FC<OverviewProps> = ({ leads, isLoading }) => {
     const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null)
     const [sessions, setSessions] = useState<LLMSession[]>([])
+    const [showLeft, setShowLeft] = useState(true)
+    const [showRight, setShowRight] = useState(true)
 
     useEffect(() => {
         const fetchSessions = async () => {
@@ -57,9 +60,9 @@ const Overview: React.FC<OverviewProps> = ({ leads, isLoading }) => {
 
     return (
         <div className="p-8 space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-4">
                 {isLoading
-                    ? Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)
+                    ? Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)
                     : stats.map((s, i) => (
                         <StatCard
                             key={i}
@@ -73,15 +76,30 @@ const Overview: React.FC<OverviewProps> = ({ leads, isLoading }) => {
                 }
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-                <div className="lg:col-span-1 border-r border-border pr-8 space-y-6">
-                    <h2 className="text-[10px] font-mono uppercase tracking-[0.2em] text-muted flex items-center gap-2">
-                        <Users size={14} /> Recent Leads
-                    </h2>
-                    <div className="space-y-3">
+            <div className="h-px bg-border/40 w-full" />
+
+            <div className="flex gap-6 items-start h-[700px]">
+                {/* LEFT SIDEBAR: LEADS */}
+                <div
+                    className={`transition-all duration-500 ease-in-out border-r border-border pr-2 space-y-6 h-full flex flex-col ${showLeft ? 'w-80 opacity-100' : 'w-0 opacity-0 overflow-hidden border-none'
+                        }`}
+                >
+                    <div className="flex items-center justify-between pr-4 sticky top-0 bg-bg-base z-10 pb-2">
+                        <h2 className="text-[10px] font-mono uppercase tracking-[0.2em] text-muted flex items-center gap-2">
+                            <Users size={14} /> Recent Leads
+                        </h2>
+                        <button
+                            onClick={() => setShowLeft(false)}
+                            className="p-1 hover:bg-white/5 rounded-md text-muted hover:text-white transition-colors"
+                        >
+                            <PanelLeftClose size={16} />
+                        </button>
+                    </div>
+
+                    <div className="space-y-3 overflow-y-auto custom-scrollbar flex-1 pr-4">
                         {isLoading
                             ? Array.from({ length: 5 }).map((_, i) => <SkeletonCard key={i} lines={2} height="h-20" />)
-                            : leads.slice(0, 8).map(lead => (
+                            : leads.slice(0, 15).map(lead => (
                                 <LeadCard
                                     key={lead.id}
                                     lead={lead}
@@ -100,7 +118,18 @@ const Overview: React.FC<OverviewProps> = ({ leads, isLoading }) => {
                     </div>
                 </div>
 
-                <div className="lg:col-span-2 h-[600px] bg-bg-card rounded-2xl border border-border overflow-hidden flex flex-col shadow-2xl">
+                {!showLeft && (
+                    <button
+                        onClick={() => setShowLeft(true)}
+                        className="p-2 bg-bg-card border border-border rounded-xl text-accent hover:bg-accent/5 transition-all shadow-lg animate-in fade-in zoom-in"
+                        title="Show Leads"
+                    >
+                        <PanelLeftOpen size={20} />
+                    </button>
+                )}
+
+                {/* CENTER: WORKSPACE */}
+                <div className="flex-1 h-full bg-bg-card rounded-3xl border border-border overflow-hidden flex flex-col shadow-2xl relative">
                     {selectedLeadId && leads.find(l => l.id === selectedLeadId) ? (
                         <LeadDetail
                             lead={leads.find(l => l.id === selectedLeadId)!}
@@ -109,20 +138,49 @@ const Overview: React.FC<OverviewProps> = ({ leads, isLoading }) => {
                         />
                     ) : (
                         <div className="m-auto flex flex-col items-center text-center p-8">
-                            <div className="w-20 h-20 bg-bg-base rounded-full flex items-center justify-center border border-border border-dashed mb-6 opacity-20">
-                                <LayoutDashboard className="text-accent" size={32} />
+                            <div className="w-24 h-24 bg-bg-base rounded-full flex items-center justify-center border border-border border-dashed mb-8 opacity-20 relative">
+                                <LayoutDashboard className="text-accent" size={40} />
+                                <div className="absolute inset-0 rounded-full border border-accent/20 animate-ping opacity-20" />
                             </div>
-                            <h3 className="text-lg font-bold text-white">Select a lead</h3>
-                            <p className="text-muted text-sm mt-2 max-w-xs leading-relaxed">
-                                Pick a lead from the recent activity to monitor Albert's conversation in real-time.
+                            <h3 className="text-xl font-bold text-white tracking-tight">Lead Intelligence Hub</h3>
+                            <p className="text-muted text-sm mt-3 max-w-sm leading-relaxed">
+                                Select a lead from the sidebar to step into the conversation and monitor Albert's performance in real-time.
                             </p>
                         </div>
                     )}
                 </div>
-            </div>
 
-            <div className="pt-4">
-                <ActivityFeed />
+                {/* RIGHT SIDEBAR: PULSE */}
+                {!showRight && (
+                    <button
+                        onClick={() => setShowRight(true)}
+                        className="p-2 bg-bg-card border border-border rounded-xl text-purple-400 hover:bg-purple-500/5 transition-all shadow-lg animate-in fade-in zoom-in"
+                        title="Show Pulse"
+                    >
+                        <PanelRightOpen size={20} />
+                    </button>
+                )}
+
+                <div
+                    className={`transition-all duration-500 ease-in-out border-l border-border pl-6 h-full flex flex-col ${showRight ? 'w-[400px] opacity-100' : 'w-0 opacity-0 overflow-hidden border-none'
+                        }`}
+                >
+                    <div className="flex items-center justify-between sticky top-0 bg-bg-base z-10 pb-4">
+                        <h2 className="text-[10px] font-mono uppercase tracking-[0.2em] text-muted flex items-center gap-2">
+                            Performance Pulse
+                        </h2>
+                        <button
+                            onClick={() => setShowRight(false)}
+                            className="p-1 hover:bg-white/5 rounded-md text-muted hover:text-white transition-colors"
+                        >
+                            <PanelRightClose size={16} />
+                        </button>
+                    </div>
+
+                    <div className="flex-1 overflow-y-auto custom-scrollbar pr-2">
+                        <ActivityFeed />
+                    </div>
+                </div>
             </div>
         </div>
     )
