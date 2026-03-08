@@ -57,9 +57,9 @@ const Overview: React.FC<OverviewProps> = ({ leads, isLoading }) => {
 
     return (
         <div className="p-8 space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
                 {isLoading
-                    ? Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)
+                    ? Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)
                     : stats.map((s, i) => (
                         <StatCard
                             key={i}
@@ -73,9 +73,8 @@ const Overview: React.FC<OverviewProps> = ({ leads, isLoading }) => {
                 }
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
-                {/* LEFT SIDEBAR: LEADS */}
-                <div className="lg:col-span-1 border-r border-border pr-8 space-y-6 h-[600px] overflow-y-auto custom-scrollbar">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
+                <div className="lg:col-span-1 border-r border-border pr-8 space-y-6">
                     <h2 className="text-[10px] font-mono uppercase tracking-[0.2em] text-muted flex items-center gap-2">
                         <Users size={14} /> Recent Leads
                     </h2>
@@ -120,11 +119,10 @@ const Overview: React.FC<OverviewProps> = ({ leads, isLoading }) => {
                         </div>
                     )}
                 </div>
+            </div>
 
-                {/* RIGHT SIDEBAR: PULSE FEED */}
-                <div className="lg:col-span-1 h-[600px] overflow-y-auto custom-scrollbar pl-2">
-                    <ActivityFeed />
-                </div>
+            <div className="pt-4">
+                <ActivityFeed />
             </div>
         </div>
     )
