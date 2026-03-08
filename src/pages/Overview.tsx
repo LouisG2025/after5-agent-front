@@ -119,13 +119,15 @@ const Overview: React.FC<OverviewProps> = ({ leads, isLoading }) => {
                             </p>
                         </div>
                     )}
-                    {/* RIGHT SIDEBAR: PULSE FEED */}
-                    <div className="lg:col-span-1 h-[600px] overflow-y-auto custom-scrollbar pl-2">
-                        <ActivityFeed />
-                    </div>
+                </div>
+
+                {/* RIGHT SIDEBAR: PULSE FEED */}
+                <div className="lg:col-span-1 h-[600px] overflow-y-auto custom-scrollbar pl-2">
+                    <ActivityFeed />
                 </div>
             </div>
-            )
+        </div>
+    )
 }
 
-            export default Overview
+export default Overview
