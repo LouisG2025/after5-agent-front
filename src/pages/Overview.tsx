@@ -73,8 +73,9 @@ const Overview: React.FC<OverviewProps> = ({ leads, isLoading }) => {
                 }
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-                <div className="lg:col-span-1 border-r border-border pr-8 space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
+                {/* LEFT SIDEBAR: LEADS */}
+                <div className="lg:col-span-1 border-r border-border pr-8 space-y-6 h-[600px] overflow-y-auto custom-scrollbar">
                     <h2 className="text-[10px] font-mono uppercase tracking-[0.2em] text-muted flex items-center gap-2">
                         <Users size={14} /> Recent Leads
                     </h2>
@@ -118,14 +119,13 @@ const Overview: React.FC<OverviewProps> = ({ leads, isLoading }) => {
                             </p>
                         </div>
                     )}
+                    {/* RIGHT SIDEBAR: PULSE FEED */}
+                    <div className="lg:col-span-1 h-[600px] overflow-y-auto custom-scrollbar pl-2">
+                        <ActivityFeed />
+                    </div>
                 </div>
             </div>
-
-            <div className="pt-4">
-                <ActivityFeed />
-            </div>
-        </div>
-    )
+            )
 }
 
-export default Overview
+            export default Overview

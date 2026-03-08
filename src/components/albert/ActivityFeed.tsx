@@ -102,7 +102,7 @@ export const ActivityFeed: React.FC = () => {
                                     )}
                                 </div>
 
-                                <p className="text-[11px] text-muted truncate mt-1 max-w-[400px] md:max-w-[600px]">
+                                <p className="text-[11px] text-muted truncate mt-1">
                                     {item.type === 'message'
                                         ? item.data.content
                                         : `Processed ${item.data.total_tokens} tokens for ${item.data.conversation_state} state`}
