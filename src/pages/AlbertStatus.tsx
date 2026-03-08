@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react'
-import type { ConversationState, Booking, Message } from '../types'
+import type { ConversationState, Booking, Message, Lead } from '../types'
 import { supabase } from '../lib/supabase'
 import { StatCard } from '../components/ui/StatCard'
 import { StateDistribution } from '../components/albert/StateDistribution'
@@ -10,6 +10,7 @@ const AlbertStatus: React.FC = () => {
     const [states, setStates] = useState<ConversationState[]>([])
     const [messages, setMessages] = useState<Message[]>([])
     const [bookings, setBookings] = useState<Booking[]>([])
+    const [leads, setLeads] = useState<Lead[]>([])
 
     useEffect(() => {
         const fetchData = async () => {
@@ -17,10 +18,12 @@ const AlbertStatus: React.FC = () => {
                 const { data: sData } = await supabase.from('conversation_state').select('*')
                 const { data: mData } = await supabase.from('messages').select('*')
                 const { data: bData } = await supabase.from('bookings').select('*')
+                const { data: lData } = await supabase.from('leads').select('*')
 
                 setStates(sData as any || [])
                 setMessages(mData as any || [])
                 setBookings(bData || [])
+                setLeads(lData as any || [])
             } catch (err) {
                 console.error('Error fetching analytics:', err)
             }
@@ -45,12 +48,30 @@ const AlbertStatus: React.FC = () => {
             percent: states.length > 0 ? Math.round((count / states.length) * 100) : 0
         })).sort((a, b) => b.count - a.count)
 
+        // Source performance — computed from real leads + bookings
+        const bookedLeadIds = new Set(bookings.map(b => b.lead_id))
+        const sourceMap = leads.reduce((acc, lead) => {
+            const src = lead.lead_source || 'Other'
+            if (!acc[src]) acc[src] = { total: 0, booked: 0 }
+            acc[src].total += 1
+            if (bookedLeadIds.has(lead.id)) acc[src].booked += 1
+            return acc
+        }, {} as Record<string, { total: number; booked: number }>)
+
+        const sourcePerformance = Object.entries(sourceMap).map(([source, { total, booked }]) => ({
+            source,
+            total,
+            booked,
+            rate: total > 0 ? Math.round((booked / total) * 100).toString() : '0'
+        })).sort((a, b) => b.total - a.total)
+
         return {
             totalMsgs,
             totalBookings,
-            distribution
+            distribution,
+            sourcePerformance
         }
-    }, [states, messages, bookings])
+    }, [states, messages, bookings, leads])
 
     const stats = [
         { label: 'Conversations', value: states.length, icon: Activity, color: 'accent' },
@@ -95,12 +116,11 @@ const AlbertStatus: React.FC = () => {
                 </div>
                 <div className="bg-bg-card border border-border rounded-3xl p-8 space-y-8">
                     <h2 className="text-[10px] font-mono uppercase tracking-[0.2em] text-muted">Source Conversion Performance</h2>
-                    <SourcePerformance data={[
-                        { source: 'Instagram', total: 45, booked: 12, rate: '26%' },
-                        { source: 'LinkedIn', total: 32, booked: 8, rate: '25%' },
-                        { source: 'Direct', total: 28, booked: 7, rate: '25%' },
-                        { source: 'Referral', total: 15, booked: 5, rate: '33%' },
-                    ]} />
+                    {analytics.sourcePerformance.length > 0 ? (
+                        <SourcePerformance data={analytics.sourcePerformance} />
+                    ) : (
+                        <p className="text-xs text-muted font-mono text-center py-8">No lead source data yet</p>
+                    )}
                 </div>
             </div>
         </div>
