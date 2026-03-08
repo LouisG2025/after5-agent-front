@@ -1,0 +1,50 @@
+export interface Lead {
+    id: string
+    first_name: string
+    last_name: string
+    email: string
+    phone: string
+    company: string
+    industry: string
+    lead_source: 'Google' | 'Meta' | 'Referral' | 'Other'
+    form_message: string
+    temperature: 'Cold' | 'Warm' | 'Hot'
+    outcome: 'In Progress' | 'Not Interested' | 'Disqualified' | 'Meeting Booked'
+    signal_score: number
+    created_at: string
+    updated_at: string
+}
+
+export interface Message {
+    id: string
+    lead_id: string
+    direction: 'inbound' | 'outbound'
+    content: string
+    created_at: string
+    leads?: Partial<Lead>
+}
+
+export interface ConversationState {
+    id: string
+    lead_id: string
+    current_state: 'Opening' | 'Discovery' | 'Qualification' | 'Intent Building' | 'Booking Push' | 'Awaiting' | 'Confirmed' | 'Escalation'
+    bant_budget: string | null
+    bant_authority: string | null
+    bant_need: string | null
+    bant_timeline: string | null
+    message_count: number
+    last_active_at: string
+    updated_at: string
+}
+
+export interface Booking {
+    id: string
+    lead_id: string
+    calendly_event_id: string
+    scheduled_at: string
+    status: 'confirmed' | 'cancelled' | 'pending'
+    created_at: string
+    leads?: Partial<Lead>
+}
+
+export type ConversationStateName = ConversationState['current_state']

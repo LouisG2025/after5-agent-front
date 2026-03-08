@@ -1,0 +1,101 @@
+﻿import React, { useMemo, useState } from 'react'
+import type { Lead } from '../types'
+import { StatCard } from '../components/ui/StatCard'
+import { LeadCard } from '../components/leads/LeadCard'
+import { ActivityFeed } from '../components/albert/ActivityFeed'
+import {
+    Users,
+    MessageSquare,
+    CalendarCheck,
+    TrendingUp,
+    LayoutDashboard
+} from 'lucide-react'
+
+import { SkeletonCard } from '../components/ui/SkeletonCard'
+
+interface OverviewProps {
+    leads: Lead[]
+    isLoading?: boolean
+}
+
+const Overview: React.FC<OverviewProps> = ({ leads, isLoading }) => {
+    const [selectedLead, setSelectedLead] = useState<Lead | null>(null)
+
+    const stats = useMemo(() => {
+        const total = leads.length
+        const active = leads.filter(l => l.outcome === 'In Progress').length
+        const booked = leads.filter(l => l.outcome === 'Meeting Booked').length
+        const rate = total > 0 ? ((booked / total) * 100).toFixed(1) : '0.0'
+
+        return [
+            { label: 'Total Leads', value: total, icon: Users, color: 'text-blue-400' },
+            { label: 'Active Now', value: active, icon: MessageSquare, color: 'text-amber-400', pulse: active > 0 },
+            { label: 'Meetings Booked', value: booked, icon: CalendarCheck, color: 'text-[#2EFFA1]' },
+            { label: 'Conversion Rate', value: `${rate}%`, icon: TrendingUp, color: 'text-[#8892A4]' },
+        ]
+    }, [leads])
+
+    return (
+        <div className="p-8 space-y-12 animate-fade-up">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+                {isLoading
+                    ? Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)
+                    : stats.map((s, i) => (
+                        <StatCard
+                            key={i}
+                            label={s.label}
+                            value={s.value}
+                            icon={s.icon}
+                            accentColor={s.color}
+                            pulse={s.pulse}
+                        />
+                    ))
+                }
+            </div>
+
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+                <div className="lg:col-span-4 space-y-6">
+                    <div className="flex items-center justify-between">
+                        <h2 className="text-[11px] font-mono font-bold uppercase tracking-[0.2em] text-[#4B5668] flex items-center gap-2.5">
+                            <Users size={14} className="text-[#2EFFA1]" /> Intelligence Queue
+                        </h2>
+                    </div>
+
+                    <div className="space-y-3">
+                        {leads.slice(0, 8).map((lead) => (
+                            <LeadCard
+                                key={lead.id}
+                                lead={lead}
+                                isSelected={selectedLead?.id === lead.id}
+                                onClick={() => setSelectedLead(lead)}
+                            />
+                        ))}
+                    </div>
+                </div>
+
+                <div className="lg:col-span-8 group relative">
+                    <div className="relative bg-[#0b0f1a] rounded-3xl border border-[#ffffff0a] overflow-hidden shadow-2xl min-h-[700px] flex flex-col">
+                        {selectedLead ? (
+                            <div className="p-12 text-center text-[#4B5668]">
+                                <MessageSquare size={48} className="mx-auto mb-6 opacity-20" />
+                                <h3 className="text-[18px] font-bold text-[#F0F4FF] mb-2">{selectedLead?.first_name}&apos;s Intelligence Hub</h3>
+                                <p className="text-[14px] text-[#8892A4] mb-8">Detailed profiling and negotiation history for this operational lead.</p>
+                            </div>
+                        ) : (
+                            <div className="m-auto flex flex-col items-center text-center p-12">
+                                <LayoutDashboard className="text-[#2EFFA1] opacity-40" size={40} />
+                                <h3 className="text-[20px] font-bold text-[#F0F4FF] mb-3">Initialize Observation</h3>
+                            </div>
+                        )}
+                    </div>
+                </div>
+            </div>
+
+            <div className="space-y-6 pt-4">
+                <ActivityFeed />
+            </div>
+        </div>
+    )
+}
+
+export default Overview
