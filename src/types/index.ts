@@ -47,4 +47,18 @@ export interface Booking {
     leads?: Partial<Lead>
 }
 
+export interface LLMSession {
+    id: string
+    lead_id: string | null
+    helicone_id: string
+    model: string
+    prompt_tokens: number
+    completion_tokens: number
+    total_tokens: number
+    cost_usd: number
+    latency_ms: number
+    conversation_state: string
+    created_at: string
+}
+
 export type ConversationStateName = ConversationState['current_state']

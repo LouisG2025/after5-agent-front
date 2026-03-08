@@ -1,14 +1,17 @@
-import React, { useMemo, useState } from 'react'
-import type { Lead } from '../types'
+import React, { useMemo, useState, useEffect } from 'react'
+import type { Lead, LLMSession } from '../types'
 import { StatCard } from '../components/ui/StatCard'
 import { LeadCard } from '../components/leads/LeadCard'
 import { ActivityFeed } from '../components/albert/ActivityFeed'
+import { supabase } from '../lib/supabase'
 import {
     Users,
     MessageSquare,
     CalendarCheck,
     TrendingUp,
-    LayoutDashboard
+    LayoutDashboard,
+    DollarSign,
+    Zap
 } from 'lucide-react'
 
 import { SkeletonCard } from '../components/ui/SkeletonCard'
@@ -21,6 +24,15 @@ interface OverviewProps {
 
 const Overview: React.FC<OverviewProps> = ({ leads, isLoading }) => {
     const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null)
+    const [sessions, setSessions] = useState<LLMSession[]>([])
+
+    useEffect(() => {
+        const fetchSessions = async () => {
+            const { data } = await supabase.from('llm_sessions').select('*')
+            if (data) setSessions(data)
+        }
+        fetchSessions()
+    }, [])
 
     const stats = useMemo(() => {
         const total = leads.length
@@ -28,19 +40,26 @@ const Overview: React.FC<OverviewProps> = ({ leads, isLoading }) => {
         const booked = leads.filter(l => l.outcome === 'Meeting Booked').length
         const rate = total > 0 ? ((booked / total) * 100).toFixed(1) : '0.0'
 
+        const totalCost = sessions.reduce((sum, s) => sum + (s.cost_usd || 0), 0)
+        const avgLatency = sessions.length > 0
+            ? Math.round(sessions.reduce((sum, s) => sum + (s.latency_ms || 0), 0) / sessions.length)
+            : 0
+
         return [
             { label: 'Total Leads', value: total, icon: Users, color: 'text-blue-400', bg: 'bg-blue-400/10' },
             { label: 'Active Now', value: active, icon: MessageSquare, color: 'text-amber-400', bg: 'bg-amber-400/10', pulse: active > 0 },
             { label: 'Meetings Booked', value: booked, icon: CalendarCheck, color: 'text-accent', bg: 'bg-accent/10' },
             { label: 'Conversion Rate', value: `${rate}%`, icon: TrendingUp, color: 'text-rose-400', bg: 'bg-rose-400/10' },
+            { label: 'Total AI Cost', value: `$${totalCost.toFixed(2)}`, icon: DollarSign, color: 'text-emerald-400', bg: 'bg-emerald-400/10' },
+            { label: 'Avg AI Latency', value: `${avgLatency}ms`, icon: Zap, color: 'text-purple-400', bg: 'bg-purple-400/10' },
         ]
-    }, [leads])
+    }, [leads, sessions])
 
     return (
         <div className="p-8 space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-6 gap-6">
                 {isLoading
-                    ? Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)
+                    ? Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)
                     : stats.map((s, i) => (
                         <StatCard
                             key={i}
