@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react'
 import { supabase } from '../../lib/supabase'
 import type { Message, LLMSession } from '../../types'
-import { Brain, MessageCircle } from 'lucide-react'
+import { Activity, Brain, MessageCircle } from 'lucide-react'
 
 type FeedItem =
     | { type: 'message'; data: Message }
@@ -60,53 +60,69 @@ export const ActivityFeed: React.FC = () => {
     </div>
 
     return (
-        <div className="bg-bg-card rounded-3xl border border-border divide-y divide-border/30 overflow-hidden shadow-sm">
-            {items.map((item, idx) => (
-                <div key={idx} className="p-4 flex items-center justify-between group hover:bg-white/[0.01] transition-all">
-                    <div className="flex items-center gap-4 min-w-0">
-                        <div className={`w-9 h-9 rounded-2xl flex items-center justify-center border transition-all duration-500 group-hover:scale-110 ${item.type === 'message'
-                            ? item.data.direction === 'inbound'
-                                ? 'bg-bg-elevated text-muted border-border'
-                                : 'bg-accent/10 text-accent border-accent/20'
-                            : 'bg-purple-500/10 text-purple-400 border-purple-500/20'
-                            }`}>
-                            {item.type === 'message' ? <MessageCircle size={16} /> : <Brain size={16} />}
-                        </div>
-
-                        <div className="min-w-0">
-                            <div className="flex items-center gap-2">
-                                <p className="text-[11px] font-bold text-white/90">
-                                    {item.type === 'message'
-                                        ? item.data.direction === 'inbound' ? 'Customer Message' : 'Albert Response'
-                                        : `AI Thinking: ${item.data.model.split('/')[1] || item.data.model}`}
-                                </p>
-                                {item.type === 'ai' && (
-                                    <span className="text-[9px] font-mono px-1.5 py-0.5 bg-purple-500/10 text-purple-400 rounded-md border border-purple-500/10">
-                                        {item.data.latency_ms}ms
-                                    </span>
-                                )}
-                            </div>
-
-                            <p className="text-[11px] text-muted truncate mt-1">
-                                {item.type === 'message'
-                                    ? item.data.content
-                                    : `Processed ${item.data.total_tokens} tokens for ${item.data.conversation_state} state`}
-                            </p>
-                        </div>
+        <div className="space-y-6">
+            <div className="flex items-center justify-between">
+                <h2 className="text-[10px] font-mono uppercase tracking-[0.2em] text-muted flex items-center gap-2">
+                    <Activity size={14} className="text-accent" /> Albert Performance Pulse
+                </h2>
+                <div className="flex items-center gap-3">
+                    <div className="flex items-center gap-1.5 text-[9px] font-mono text-muted uppercase">
+                        <div className="w-1.5 h-1.5 rounded-full bg-accent" /> Message
                     </div>
-
-                    <div className="text-right shrink-0 ml-4">
-                        <p className="text-[9px] font-mono text-muted uppercase tracking-tighter">
-                            {new Date(item.data.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
-                        </p>
-                        {item.type === 'ai' && (
-                            <p className="text-[9px] font-mono text-accent mt-0.5 tracking-tighter">
-                                ${item.data.cost_usd.toFixed(4)}
-                            </p>
-                        )}
+                    <div className="flex items-center gap-1.5 text-[9px] font-mono text-muted uppercase">
+                        <div className="w-1.5 h-1.5 rounded-full bg-purple-500" /> AI Pulse
                     </div>
                 </div>
-            ))}
+            </div>
+
+            <div className="bg-bg-card rounded-3xl border border-border divide-y divide-border/30 overflow-hidden shadow-xl">
+                {items.map((item, idx) => (
+                    <div key={idx} className="p-4 flex items-center justify-between group hover:bg-white/[0.01] transition-all">
+                        <div className="flex items-center gap-4 min-w-0">
+                            <div className={`w-9 h-9 rounded-2xl flex items-center justify-center border transition-all duration-500 group-hover:scale-110 ${item.type === 'message'
+                                ? item.data.direction === 'inbound'
+                                    ? 'bg-bg-elevated text-muted border-border'
+                                    : 'bg-accent/10 text-accent border-accent/20'
+                                : 'bg-purple-500/10 text-purple-400 border-purple-500/20'
+                                }`}>
+                                {item.type === 'message' ? <MessageCircle size={16} /> : <Brain size={16} />}
+                            </div>
+
+                            <div className="min-w-0">
+                                <div className="flex items-center gap-2">
+                                    <p className="text-[11px] font-bold text-white/90">
+                                        {item.type === 'message'
+                                            ? item.data.direction === 'inbound' ? 'Customer Message' : 'Albert Response'
+                                            : `AI Thinking: ${item.data.model.split('/')[1] || item.data.model}`}
+                                    </p>
+                                    {item.type === 'ai' && (
+                                        <span className="text-[9px] font-mono px-1.5 py-0.5 bg-purple-500/10 text-purple-400 rounded-md border border-purple-500/10">
+                                            {item.data.latency_ms}ms
+                                        </span>
+                                    )}
+                                </div>
+
+                                <p className="text-[11px] text-muted truncate mt-1 max-w-[400px] md:max-w-[600px]">
+                                    {item.type === 'message'
+                                        ? item.data.content
+                                        : `Processed ${item.data.total_tokens} tokens for ${item.data.conversation_state} state`}
+                                </p>
+                            </div>
+                        </div>
+
+                        <div className="text-right shrink-0 ml-4">
+                            <p className="text-[9px] font-mono text-muted uppercase tracking-tighter">
+                                {new Date(item.data.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}
+                            </p>
+                            {item.type === 'ai' && (
+                                <p className="text-[9px] font-mono text-accent mt-0.5 tracking-tighter">
+                                    ${item.data.cost_usd.toFixed(4)}
+                                </p>
+                            )}
+                        </div>
+                    </div>
+                ))}
+            </div>
         </div>
     )
 }

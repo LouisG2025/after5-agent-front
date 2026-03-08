@@ -68,15 +68,13 @@ const AppContent: React.FC = () => {
         />
 
         <div className="flex-1 overflow-y-auto custom-scrollbar">
-          <div className="max-w-full xl:max-w-[90%] 2xl:max-w-[80%] mx-auto transition-all duration-500">
-            <Routes>
-              <Route path="/" element={<Overview leads={leads} isLoading={isLoading} />} />
-              <Route path="/leads" element={<Leads leads={leads} isLoading={isLoading} refetch={refetch} />} />
-              <Route path="/conversations" element={<Conversations leads={leads} isLoading={isLoading} refetch={refetch} />} />
-              <Route path="/bookings" element={<Bookings leads={leads} isLoading={isLoading} />} />
-              <Route path="/albert" element={<AlbertStatus />} />
-            </Routes>
-          </div>
+          <Routes>
+            <Route path="/" element={<Overview leads={leads} isLoading={isLoading} />} />
+            <Route path="/leads" element={<Leads leads={leads} isLoading={isLoading} refetch={refetch} />} />
+            <Route path="/conversations" element={<Conversations leads={leads} isLoading={isLoading} refetch={refetch} />} />
+            <Route path="/bookings" element={<Bookings leads={leads} isLoading={isLoading} />} />
+            <Route path="/albert" element={<AlbertStatus />} />
+          </Routes>
         </div>
       </main>
     </div>
