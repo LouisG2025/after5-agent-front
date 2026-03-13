@@ -71,6 +71,18 @@ export const ConversationView: React.FC<ConversationViewProps> = ({
                         )
                     })
                 )}
+                {state?.is_typing && !isLoading && (
+                    <div className="flex justify-end animate-fade-up">
+                        <div className="bg-[#2EFFA1] text-[#060912] px-5 py-4 rounded-[18px] rounded-tr-[4px] shadow-lg flex items-center gap-1.5">
+                            <span className="text-[12px] font-bold uppercase tracking-wider mr-2">Albert writing</span>
+                            <div className="flex gap-1">
+                                <span className="w-1.5 h-1.5 bg-[#060912] rounded-full animate-bounce delay-[0ms]"></span>
+                                <span className="w-1.5 h-1.5 bg-[#060912] rounded-full animate-bounce delay-[150ms]"></span>
+                                <span className="w-1.5 h-1.5 bg-[#060912] rounded-full animate-bounce delay-[300ms]"></span>
+                            </div>
+                        </div>
+                    </div>
+                )}
                 {!isLoading && messages.length === 0 && (
                     <div className="h-full flex flex-col items-center justify-center opacity-20 py-20 text-center">
                         <MessageSquare size={32} className="mb-4 text-[#8892A4]" />

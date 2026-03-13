@@ -33,6 +33,7 @@ export interface ConversationState {
     bant_need: string | null
     bant_timeline: string | null
     message_count: number
+    is_typing?: boolean
     last_active_at: string
     updated_at: string
 }
