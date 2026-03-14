@@ -7,7 +7,7 @@ import { ConversationView } from './ConversationView'
 import { IntelligenceView } from './IntelligenceView'
 import { supabase } from '../../lib/supabase'
 import { useMessages } from '../../hooks/useMessages'
-import { Phone, Mail, ExternalLink, Calendar as CalendarIcon, MessageSquare, BrainCircuit, User, X } from 'lucide-react'
+import { Phone, Mail, ExternalLink, Calendar as CalendarIcon, MessageSquare, BrainCircuit, User, X, RotateCcw } from 'lucide-react'
 
 interface LeadDetailProps {
     lead: Lead
@@ -19,6 +19,7 @@ export const LeadDetail: React.FC<LeadDetailProps> = ({ lead, onClose, refetch }
     const [activeTab, setActiveTab] = useState('conversation')
     const { messages } = useMessages(lead.id)
     const [state, setState] = useState<ConversationState | null>(null)
+    const [isResetting, setIsResetting] = useState(false)
 
     // Load conversation state
     React.useEffect(() => {
@@ -37,6 +38,32 @@ export const LeadDetail: React.FC<LeadDetailProps> = ({ lead, onClose, refetch }
         refetch()
     }
 
+    const handleResetSession = async () => {
+        if (!confirm("Are you sure you want to reset this lead's interaction history from AI memory?")) return
+
+        setIsResetting(true)
+        try {
+            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+            const res = await fetch(`${apiUrl}/admin/reset-session`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ phone: lead.phone })
+            })
+            const data = await res.json()
+            if (data.status === 'ok') {
+                alert('Session reset successfully! Albert will treat them as a new customer.')
+                refetch()
+            } else {
+                alert(`Failed to reset session: ${data.reason || data.message}`)
+            }
+        } catch (error) {
+            console.error('Reset failed:', error)
+            alert('Failed to reset session. Ensure the backend is running at http://localhost:8000')
+        } finally {
+            setIsResetting(false)
+        }
+    }
+
     return (
         <div className="flex flex-col h-full bg-bg-card relative">
             {/* Header */}
@@ -53,12 +80,23 @@ export const LeadDetail: React.FC<LeadDetailProps> = ({ lead, onClose, refetch }
                         </div>
                     </div>
                 </div>
-                <button
-                    onClick={onClose}
-                    className="p-2 hover:bg-white/5 rounded-xl transition-colors text-muted hover:text-white"
-                >
-                    <X size={20} />
-                </button>
+                <div className="flex items-center gap-2">
+                    <button
+                        onClick={handleResetSession}
+                        disabled={isResetting}
+                        className="px-3 py-1.5 flex items-center gap-2 bg-red-500/10 text-red-500 border border-red-500/20 hover:bg-red-500/20 rounded-xl text-[10px] font-bold uppercase tracking-widest transition-colors disabled:opacity-50"
+                        title="Reset Lead's Session History"
+                    >
+                        <RotateCcw size={14} className={isResetting ? "animate-spin" : ""} />
+                        <span className="hidden sm:inline">{isResetting ? 'Resetting...' : 'Reset Session'}</span>
+                    </button>
+                    <button
+                        onClick={onClose}
+                        className="p-2 hover:bg-white/5 rounded-xl transition-colors text-muted hover:text-white"
+                    >
+                        <X size={20} />
+                    </button>
+                </div>
             </div>
 
             {/* Quick Actions / Contact */}
