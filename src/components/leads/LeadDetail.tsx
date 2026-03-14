@@ -43,7 +43,11 @@ export const LeadDetail: React.FC<LeadDetailProps> = ({ lead, onClose, refetch }
 
         setIsResetting(true)
         try {
-            const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000'
+            // Determine API URL based on environment
+            const isProd = import.meta.env.PROD || window.location.hostname !== 'localhost'
+            const defaultApiUrl = isProd ? 'https://after5-agent-production.up.railway.app' : 'http://localhost:8000'
+            const apiUrl = import.meta.env.VITE_API_URL || defaultApiUrl
+            
             const res = await fetch(`${apiUrl}/admin/reset-session`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -58,7 +62,7 @@ export const LeadDetail: React.FC<LeadDetailProps> = ({ lead, onClose, refetch }
             }
         } catch (error) {
             console.error('Reset failed:', error)
-            alert('Failed to reset session. Ensure the backend is running at http://localhost:8000')
+            alert('Failed to reset session. Ensure the backend API is reachable.')
         } finally {
             setIsResetting(false)
         }
