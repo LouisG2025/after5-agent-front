@@ -62,14 +62,15 @@ export const Sidebar: React.FC<SidebarProps> = ({ onLogout, isOpen, setIsOpen })
                                 to={item.path}
                                 onClick={() => { if (window.innerWidth < 1024) setIsOpen(false) }}
                                 className={({ isActive }) => `
-                                    w-full sidebar-item !text-[11px] !font-black !uppercase !tracking-[0.2em] !italic
-                                    ${isActive ? 'active' : ''}
+                                    w-full flex items-center gap-4 px-6 py-4 rounded-2xl transition-all duration-300
+                                    !text-[11px] !font-black !uppercase !tracking-[0.2em] !italic
+                                    ${isActive ? 'bg-accent/10 border border-accent/20 text-accent shadow-[0_0_20px_rgba(46,255,161,0.1)]' : 'text-muted/40 hover:bg-white/5 hover:text-white border border-transparent'}
                                 `}
                             >
                                 {({ isActive }) => (
                                     <>
-                                        <item.icon size={18} className={isActive ? 'text-accent' : 'text-muted/40'} />
-                                        <span>{item.label}</span>
+                                        <item.icon size={18} className={`shrink-0 ${isActive ? 'text-accent' : 'text-muted/40'}`} />
+                                        <span className="truncate">{item.label}</span>
                                     </>
                                 )}
                             </NavLink>

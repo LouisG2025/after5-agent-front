@@ -1,13 +1,26 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import type { Lead, Message, ConversationState } from '../../types'
 import { Badge } from '../ui/Badge'
-import { MessageSquare, Brain } from 'lucide-react'
+import { MessageSquare, Brain, CheckCircle, XCircle, Loader } from 'lucide-react'
 
 interface ConversationViewProps {
     messages: Message[]
     isLoading?: boolean
     lead: Lead
     state: ConversationState | null
+}
+
+type ToastType = 'success' | 'error' | 'loading'
+interface Toast {
+    message: string
+    type: ToastType
+}
+
+const getApiBase = () => {
+    const isProd = import.meta.env.PROD || window.location.hostname !== 'localhost'
+    const defaultApiUrl = isProd ? 'https://after5-agent-production.up.railway.app' : 'http://localhost:8000'
+    const apiUrl = import.meta.env.VITE_API_URL || defaultApiUrl
+    return `${apiUrl}/training`
 }
 
 export const ConversationView: React.FC<ConversationViewProps> = ({
@@ -19,52 +32,82 @@ export const ConversationView: React.FC<ConversationViewProps> = ({
     const leadName = lead.first_name || 'Lead'
     const currentState = state?.current_state || 'Opening'
     const scrollRef = useRef<HTMLDivElement>(null)
+    const [toast, setToast] = useState<Toast | null>(null)
+    const [isCollecting, setIsCollecting] = useState(false)
+    const [activeFeedback, setActiveFeedback] = useState<string | null>(null)
+
+    const showToast = (message: string, type: ToastType) => {
+        setToast({ message, type })
+        if (type !== 'loading') {
+            setTimeout(() => setToast(null), 3500)
+        }
+    }
 
     const handleCollect = async () => {
-        const isProd = import.meta.env.PROD || window.location.hostname !== 'localhost'
-        const defaultApiUrl = isProd ? 'https://after5-agent-production.up.railway.app' : 'http://localhost:8000'
-        const apiUrl = import.meta.env.VITE_API_URL || defaultApiUrl
-        const API_BASE = `${apiUrl}/training`
-        
+        if (messages.length === 0) {
+            showToast('No messages to collect', 'error')
+            return
+        }
+        setIsCollecting(true)
+        showToast('Collecting for training pool...', 'loading')
         try {
-            const res = await fetch(`${API_BASE}/worthy/manual`, {
+            const res = await fetch(`${getApiBase()}/worthy/manual`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     lead_id: lead.id,
-                    history: messages
+                    history: messages.map(m => ({
+                        role: m.direction === 'outbound' ? 'assistant' : 'user',
+                        content: m.content
+                    }))
                 })
             })
             if (res.ok) {
-                alert("Successfully added to Training Pool!")
+                showToast('Added to Training Pool ✓', 'success')
+            } else {
+                const data = await res.json().catch(() => ({}))
+                showToast(data.detail || data.message || `Backend error ${res.status}`, 'error')
             }
         } catch (error) {
-            console.error("Collection failed:", error)
+            console.error('Collection failed:', error)
+            showToast('Cannot reach backend API', 'error')
+        } finally {
+            setIsCollecting(false)
         }
     }
 
     const handleQuickFeedback = async (type: string) => {
-        const isProd = import.meta.env.PROD || window.location.hostname !== 'localhost'
-        const defaultApiUrl = isProd ? 'https://after5-agent-production.up.railway.app' : 'http://localhost:8000'
-        const apiUrl = import.meta.env.VITE_API_URL || defaultApiUrl
-        const API_BASE = `${apiUrl}/training`
-
+        if (messages.length === 0) {
+            showToast('No messages to evaluate', 'error')
+            return
+        }
+        setActiveFeedback(type)
+        showToast(`Synchronizing ${type} feedback...`, 'loading')
         try {
-            const res = await fetch(`${API_BASE}/worthy/manual`, {
+            const res = await fetch(`${getApiBase()}/worthy/manual`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     lead_id: lead.id,
-                    history: messages,
+                    history: messages.map(m => ({
+                        role: m.direction === 'outbound' ? 'assistant' : 'user',
+                        content: m.content
+                    })),
                     immediate_feedback: type,
-                    is_reviewed: true // Auto-review if sent from direct view
+                    is_reviewed: true
                 })
             })
             if (res.ok) {
-                alert(`${type} feedback synchronized!`)
+                showToast(`${type} feedback synchronized ✓`, 'success')
+            } else {
+                const data = await res.json().catch(() => ({}))
+                showToast(data.detail || data.message || `Backend error ${res.status}`, 'error')
             }
         } catch (error) {
-            console.error("Feedback synchronization failed:", error)
+            console.error('Feedback failed:', error)
+            showToast('Cannot reach backend API', 'error')
+        } finally {
+            setActiveFeedback(null)
         }
     }
 
@@ -75,7 +118,20 @@ export const ConversationView: React.FC<ConversationViewProps> = ({
     }, [messages])
 
     return (
-        <div className="flex flex-col h-full animate-fade-up">
+        <div className="flex flex-col h-full animate-fade-up relative">
+            {/* Toast Notification */}
+            {toast && (
+                <div className={`absolute top-0 right-0 z-50 flex items-center gap-3 px-5 py-3 rounded-2xl border text-[10px] font-black uppercase tracking-widest shadow-2xl animate-fade-up transition-all
+                    ${toast.type === 'success' ? 'bg-[#06080f] border-accent/40 text-accent' :
+                      toast.type === 'error'   ? 'bg-[#06080f] border-red-500/40 text-red-400' :
+                                                 'bg-[#06080f] border-white/10 text-muted/60'}`}>
+                    {toast.type === 'loading' && <Loader size={12} className="animate-spin" />}
+                    {toast.type === 'success' && <CheckCircle size={12} />}
+                    {toast.type === 'error'   && <XCircle size={12} />}
+                    {toast.message}
+                </div>
+            )}
+
             <div className="flex items-center justify-between mb-10 px-2">
                 <div className="flex items-center gap-4">
                     <div className="scale-90 origin-left">
@@ -85,13 +141,17 @@ export const ConversationView: React.FC<ConversationViewProps> = ({
                         {messages.length} Synchronized Packets
                     </span>
                 </div>
-                <button 
+                <button
                     onClick={handleCollect}
-                    className="flex items-center gap-2 px-4 py-1.5 bg-purple-500/10 border border-purple-500/20 rounded-2xl shadow-[0_0_15px_rgba(147,51,234,0.1)] hover:bg-purple-500/20 transition-all group"
+                    disabled={isCollecting}
+                    className="flex items-center gap-2 px-4 py-1.5 bg-purple-500/10 border border-purple-500/20 rounded-2xl shadow-[0_0_15px_rgba(147,51,234,0.1)] hover:bg-purple-500/20 transition-all group disabled:opacity-40"
                 >
-                    <Brain size={12} className="text-purple-400 group-hover:scale-110 transition-transform" />
+                    {isCollecting
+                        ? <Loader size={12} className="text-purple-400 animate-spin" />
+                        : <Brain size={12} className="text-purple-400 group-hover:scale-110 transition-transform" />
+                    }
                     <span className="text-[10px] font-black text-purple-400 uppercase tracking-widest italic">
-                        Collect for Training
+                        {isCollecting ? 'Collecting...' : 'Collect for Training'}
                     </span>
                 </button>
             </div>
@@ -153,24 +213,25 @@ export const ConversationView: React.FC<ConversationViewProps> = ({
                 <div className="flex items-center justify-between px-2">
                     <span className="text-[10px] text-muted/30 font-black uppercase tracking-[0.3em] italic">Neural Flow Feedback</span>
                     <div className="flex gap-3">
-                        <button 
-                            onClick={() => handleQuickFeedback('TONE')}
-                            className="px-4 py-1.5 rounded-xl border border-white/5 bg-white/[0.02] text-[9px] font-black text-amber-400/60 hover:text-amber-400 hover:bg-amber-400/5 hover:border-amber-400/20 transition-all uppercase tracking-widest"
-                        >
-                            TONE
-                        </button>
-                        <button 
-                            onClick={() => handleQuickFeedback('LOGIC')}
-                            className="px-4 py-1.5 rounded-xl border border-white/5 bg-white/[0.02] text-[9px] font-black text-blue-400/60 hover:text-blue-400 hover:bg-blue-400/5 hover:border-blue-400/20 transition-all uppercase tracking-widest"
-                        >
-                            LOGIC
-                        </button>
-                        <button 
-                            onClick={() => handleQuickFeedback('SALES')}
-                            className="px-4 py-1.5 rounded-xl border border-white/5 bg-white/[0.02] text-[9px] font-black text-accent/60 hover:text-accent hover:bg-accent/5 hover:border-accent/20 transition-all uppercase tracking-widest"
-                        >
-                            SALES
-                        </button>
+                        {(['TONE', 'LOGIC', 'SALES'] as const).map((type, idx) => {
+                            const colors = [
+                                'text-amber-400/60 hover:text-amber-400 hover:bg-amber-400/5 hover:border-amber-400/20',
+                                'text-blue-400/60 hover:text-blue-400 hover:bg-blue-400/5 hover:border-blue-400/20',
+                                'text-accent/60 hover:text-accent hover:bg-accent/5 hover:border-accent/20'
+                            ]
+                            const isActive = activeFeedback === type
+                            return (
+                                <button
+                                    key={type}
+                                    onClick={() => handleQuickFeedback(type)}
+                                    disabled={!!activeFeedback}
+                                    className={`flex items-center gap-1.5 px-4 py-1.5 rounded-xl border border-white/5 bg-white/[0.02] text-[9px] font-black uppercase tracking-widest transition-all disabled:opacity-50 ${colors[idx]}`}
+                                >
+                                    {isActive && <Loader size={8} className="animate-spin" />}
+                                    {type}
+                                </button>
+                            )
+                        })}
                     </div>
                 </div>
 

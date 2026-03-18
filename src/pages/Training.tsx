@@ -7,6 +7,7 @@ const Training: React.FC = () => {
     const [worthyPool, setWorthyPool] = useState<any[]>([])
     const [brainRules, setBrainRules] = useState<any[]>([])
     const [isLoading, setIsLoading] = useState(true)
+    const [apiError, setApiError] = useState<string | null>(null)
     const [activeTab, setActiveTab] = useState<'library' | 'pool' | 'brain'>('library')
     const [isReviewOpen, setIsReviewOpen] = useState(false)
     const [reviewItem, setReviewItem] = useState<any | null>(null)
@@ -48,21 +49,26 @@ const Training: React.FC = () => {
 
     const fetchData = async () => {
         setIsLoading(true)
+        setApiError(null)
         try {
-            const [libRes, brainRes, poolRes] = await Promise.all([
+            // Pool data always comes from Supabase — get it first
+            const poolRes = await supabase.from('training_data').select('*, leads(first_name, last_name)').order('created_at', { ascending: false })
+            if (poolRes.data) setWorthyPool(poolRes.data)
+
+            // Library and Brain come from the Flask backend
+            const [libRes, brainRes] = await Promise.all([
                 fetch(`${API_BASE}/library`),
-                fetch(`${API_BASE}/brain`),
-                supabase.from('training_data').select('*, leads(first_name, last_name)').order('created_at', { ascending: false })
+                fetch(`${API_BASE}/brain`)
             ])
-            
+
             const libData = await libRes.json()
             const brainData = await brainRes.json()
 
             if (libData.status === 'ok') setExamples(libData.examples)
             if (brainData.status === 'ok') setBrainRules(brainData.data)
-            if (poolRes.data) setWorthyPool(poolRes.data)
-        } catch (error) {
-            console.error("Error fetching training data:", error)
+        } catch (error: any) {
+            console.error('Error fetching training data:', error)
+            setApiError(`Backend unreachable: ${API_BASE}. Check if the Albert API is running.`)
         } finally {
             setIsLoading(false)
         }
@@ -177,6 +183,14 @@ const Training: React.FC = () => {
                     </button>
                 </div>
             </div>
+
+            {/* API Error Banner */}
+            {apiError && (
+                <div className="flex items-center gap-4 px-6 py-4 bg-red-500/5 border border-red-500/20 rounded-2xl text-[10px] font-black uppercase tracking-widest text-red-400 italic">
+                    <div className="w-2 h-2 rounded-full bg-red-500 shrink-0 animate-pulse" />
+                    {apiError} — Pool data from Supabase still visible below
+                </div>
+            )}
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
                 <div className="glass-card !border-white/5 p-8 flex items-center gap-6 hover:bg-white/[0.03] transition-all group relative overflow-hidden">
