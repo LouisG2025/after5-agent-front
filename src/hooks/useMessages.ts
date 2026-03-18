@@ -26,8 +26,37 @@ export const useMessages = (leadId?: string) => {
     }, [leadId])
 
     useEffect(() => {
+        if (!leadId) return
+
         fetchMessages()
-    }, [fetchMessages])
+
+        // Subscribe to real-time changes for this lead's messages
+        const channel = supabase
+            .channel(`messages-${leadId}`)
+            .on(
+                'postgres_changes',
+                {
+                    event: 'INSERT',
+                    schema: 'public',
+                    table: 'messages',
+                    filter: `lead_id=eq.${leadId}`
+                },
+                (payload) => {
+                    const newMessage = payload.new as Message
+                    setMessages(prev => {
+                        // Avoid duplicates if fetch and subscription overlap
+                        if (prev.find(m => m.id === newMessage.id)) return prev
+                        return [...prev, newMessage]
+                    })
+                }
+            )
+            .subscribe()
+
+        return () => {
+            supabase.removeChannel(channel)
+        }
+    }, [leadId, fetchMessages])
 
     return { messages, isLoading, refetch: fetchMessages }
 }
+

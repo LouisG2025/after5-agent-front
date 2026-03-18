@@ -23,6 +23,8 @@ export const LeadDetail: React.FC<LeadDetailProps> = ({ lead, onClose, refetch }
 
     // Load conversation state
     React.useEffect(() => {
+        if (!lead.id) return
+
         const fetchState = async () => {
             const { data } = await supabase
                 .from('conversation_state')
@@ -31,8 +33,31 @@ export const LeadDetail: React.FC<LeadDetailProps> = ({ lead, onClose, refetch }
                 .single()
             if (data) setState(data)
         }
+
         fetchState()
+
+        // Subscribe to real-time changes for this lead's state
+        const channel = supabase
+            .channel(`state-${lead.id}`)
+            .on(
+                'postgres_changes',
+                {
+                    event: '*',
+                    schema: 'public',
+                    table: 'conversation_state',
+                    filter: `lead_id=eq.${lead.id}`
+                },
+                (payload) => {
+                    setState(payload.new as ConversationState)
+                }
+            )
+            .subscribe()
+
+        return () => {
+            supabase.removeChannel(channel)
+        }
     }, [lead.id])
+
 
     const handleUpdate = () => {
         refetch()

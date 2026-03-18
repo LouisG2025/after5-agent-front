@@ -13,6 +13,7 @@ import Leads from './pages/Leads'
 import Conversations from './pages/Conversations'
 import Bookings from './pages/Bookings'
 import AlbertStatus from './pages/AlbertStatus'
+import Training from './pages/Training'
 
 const AppContent: React.FC = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false)
@@ -73,6 +74,7 @@ const AppContent: React.FC = () => {
             <Route path="/leads" element={<Leads leads={leads} isLoading={isLoading} refetch={refetch} />} />
             <Route path="/conversations" element={<Conversations leads={leads} isLoading={isLoading} refetch={refetch} />} />
             <Route path="/bookings" element={<Bookings leads={leads} isLoading={isLoading} />} />
+            <Route path="/training" element={<Training />} />
             <Route path="/albert" element={<AlbertStatus />} />
           </Routes>
         </div>

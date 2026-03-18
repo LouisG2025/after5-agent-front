@@ -6,6 +6,7 @@ import {
     MessageSquare,
     CalendarCheck,
     Activity,
+    Brain,
     LogOut
 } from 'lucide-react'
 import type { LucideIcon } from 'lucide-react'
@@ -27,6 +28,7 @@ const navItems: NavItem[] = [
     { label: 'Leads', icon: Users, path: '/leads' },
     { label: 'Conversations', icon: MessageSquare, path: '/conversations' },
     { label: 'Bookings', icon: CalendarCheck, path: '/bookings' },
+    { label: 'Training', icon: Brain, path: '/training' },
     { label: 'Albert Status', icon: Activity, path: '/albert' },
 ]
 
