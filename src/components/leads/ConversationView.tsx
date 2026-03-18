@@ -37,7 +37,7 @@ export const ConversationView: React.FC<ConversationViewProps> = ({
         }
     }
 
-    // Write directly to Supabase training_data table — no backend needed
+    // Write directly to Supabase training_data table — using correct column names
     const handleCollect = async () => {
         if (messages.length === 0) {
             showToast('No messages to collect', 'error')
@@ -48,13 +48,12 @@ export const ConversationView: React.FC<ConversationViewProps> = ({
         try {
             const { error } = await supabase.from('training_data').insert({
                 lead_id: lead.id,
-                conversation_history: messages.map(m => ({
+                history: messages.map(m => ({
                     role: m.direction === 'outbound' ? 'assistant' : 'user',
                     content: m.content
                 })),
                 outcome: lead.outcome || 'In Progress',
                 is_reviewed: false,
-                source: 'manual',
                 created_at: new Date().toISOString()
             })
             if (error) throw error
@@ -67,7 +66,7 @@ export const ConversationView: React.FC<ConversationViewProps> = ({
         }
     }
 
-    // Write feedback directly to Supabase — tag with immediate_feedback field
+    // Write feedback directly to Supabase — using correct column names
     const handleQuickFeedback = async (type: string) => {
         if (messages.length === 0) {
             showToast('No messages to evaluate', 'error')
@@ -78,14 +77,13 @@ export const ConversationView: React.FC<ConversationViewProps> = ({
         try {
             const { error } = await supabase.from('training_data').insert({
                 lead_id: lead.id,
-                conversation_history: messages.map(m => ({
+                history: messages.map(m => ({
                     role: m.direction === 'outbound' ? 'assistant' : 'user',
                     content: m.content
                 })),
                 outcome: lead.outcome || 'In Progress',
-                immediate_feedback: type,
+                feedback: `Feedback: ${type}`,
                 is_reviewed: true,
-                source: 'quick_feedback',
                 created_at: new Date().toISOString()
             })
             if (error) throw error
