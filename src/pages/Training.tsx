@@ -12,12 +12,37 @@ const Training: React.FC = () => {
     const [reviewItem, setReviewItem] = useState<any | null>(null)
     const [manualScore, setManualScore] = useState<number>(0)
     const [feedback, setFeedback] = useState("")
+    const [isAddOpen, setIsAddOpen] = useState(false)
+    const [newExampleTitle, setNewExampleTitle] = useState("")
+    const [newExampleJSON, setNewExampleJSON] = useState("")
 
     const API_BASE = (import.meta.env.VITE_API_URL || "http://localhost:8000") + "/training" 
 
     useEffect(() => {
         fetchData()
+
+        // Real-time subscription for the training pool
+        const channel = supabase
+            .channel('training-pool-realtime')
+            .on(
+                'postgres_changes',
+                {
+                    event: '*',
+                    schema: 'public',
+                    table: 'training_data'
+                },
+                () => {
+                    // Update data when any change happens in training_data
+                    fetchData()
+                }
+            )
+            .subscribe()
+
+        return () => {
+            supabase.removeChannel(channel)
+        }
     }, [])
+
 
     const fetchData = async () => {
         setIsLoading(true)
@@ -43,6 +68,28 @@ const Training: React.FC = () => {
             alert("Export started in background!")
         } catch (error) {
             alert("Export failed")
+        }
+    }
+
+    const handleAddExample = async () => {
+        try {
+            const parsed = JSON.parse(newExampleJSON)
+            const res = await fetch(`${API_BASE}/library`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    title: newExampleTitle,
+                    ...parsed
+                })
+            })
+            if (res.ok) {
+                setIsAddOpen(false)
+                setNewExampleTitle("")
+                setNewExampleJSON("")
+                fetchData()
+            }
+        } catch (error) {
+            alert("Invalid JSON or server error")
         }
     }
 
@@ -110,7 +157,10 @@ const Training: React.FC = () => {
                         </div>
                     ) : activeTab === 'library' ? (
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            <button className="flex flex-col items-center justify-center p-8 rounded-2xl border-2 border-dashed border-border hover:border-accent/40 hover:bg-accent/5 transition-all group">
+                            <button 
+                                onClick={() => setIsAddOpen(true)}
+                                className="flex flex-col items-center justify-center p-8 rounded-2xl border-2 border-dashed border-border hover:border-accent/40 hover:bg-accent/5 transition-all group text-left w-full h-full"
+                            >
                                 <Plus className="text-muted group-hover:text-accent mb-2" size={32} />
                                 <span className="text-sm font-bold text-muted group-hover:text-white">Add New Example</span>
                             </button>
@@ -143,6 +193,7 @@ const Training: React.FC = () => {
                                         <th className="pb-4 px-4">Lead</th>
                                         <th className="pb-4 px-4">Score</th>
                                         <th className="pb-4 px-4">Outcome</th>
+                                        <th className="pb-4 px-4">Feedback</th>
                                         <th className="pb-4 px-4">Date</th>
                                         <th className="pb-4 px-4 text-right">Action</th>
                                     </tr>
@@ -166,6 +217,11 @@ const Training: React.FC = () => {
                                                 <span className="text-[10px] px-2 py-0.5 bg-white/5 text-muted rounded-md border border-border/50 uppercase font-mono">
                                                     {p.outcome}
                                                 </span>
+                                            </td>
+                                            <td className="py-4 px-4">
+                                                <p className="text-xs text-muted max-w-[200px] truncate italic">
+                                                    {p.feedback || "No feedback yet"}
+                                                </p>
                                             </td>
                                             <td className="py-4 px-4 text-xs text-muted">
                                                 {new Date(p.created_at).toLocaleDateString()}
@@ -230,13 +286,88 @@ const Training: React.FC = () => {
                                     placeholder="What did Albert miss?"
                                     className="w-full h-24 bg-bg-base border border-border rounded-xl px-4 py-3 text-white focus:border-accent/40 outline-none resize-none"
                                 />
+                                <div className="flex flex-wrap gap-2">
+                                    {[
+                                        { label: "Tone 🎭", text: "Tone correction needed: " },
+                                        { label: "Chunking ✂️", text: "Chunking issue: " },
+                                        { label: "Objections 🛡️", text: "Objection handling improvement: " },
+                                        { label: "Sales 💰", text: "Sales technique error: " }
+                                    ].map(btn => (
+                                        <button 
+                                            key={btn.label}
+                                            onClick={() => setFeedback(prev => prev ? `${prev}\n${btn.text}` : btn.text)}
+                                            className="text-[9px] px-2 py-1 bg-white/5 border border-border rounded-lg hover:bg-accent/10 hover:border-accent/20 text-muted hover:text-accent transition-all uppercase font-mono tracking-tighter"
+                                        >
+                                            {btn.label}
+                                        </button>
+                                    ))}
+                                </div>
                             </div>
                         </div>
 
+                        <div className="p-6 border-t border-border flex justify-between gap-4 bg-bg-elevated">
+                            <button 
+                                onClick={() => {
+                                    setNewExampleTitle(`Leads - ${reviewItem.leads?.first_name}`)
+                                    setNewExampleJSON(JSON.stringify({
+                                        tags: { outcome: reviewItem.outcome, lead: reviewItem.leads?.first_name },
+                                        history: reviewItem.history
+                                    }, null, 2))
+                                    setIsReviewOpen(false)
+                                    setIsAddOpen(true)
+                                }}
+                                className="px-4 py-2 border border-accent/20 text-accent hover:bg-accent/5 rounded-xl text-xs font-bold transition-all"
+                            >
+                                🚀 Promote to RAG Library
+                            </button>
+                            <div className="flex gap-4">
+                                <button onClick={() => setIsReviewOpen(false)} className="px-6 py-2 text-muted hover:text-white">Cancel</button>
+                                <button onClick={handleSaveReview} className="px-8 py-2 bg-accent text-bg-base font-bold rounded-xl flex items-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(46,255,161,0.2)]">
+                                    <Save size={16} /> Save Review
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            )}
+
+            {/* Add Example Modal */}
+            {isAddOpen && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-bg-base/80 backdrop-blur-md animate-in fade-in duration-300">
+                    <div className="bg-bg-card border border-border w-full max-w-2xl rounded-[32px] overflow-hidden flex flex-col shadow-2xl">
+                        <div className="p-6 border-b border-border flex items-center justify-between">
+                            <h2 className="text-xl font-bold text-white">Add New Conversation Example</h2>
+                            <button onClick={() => setIsAddOpen(false)} className="text-muted hover:text-white text-2xl">&times;</button>
+                        </div>
+                        <div className="p-6 space-y-6">
+                            <div className="space-y-2">
+                                <label className="text-xs font-mono uppercase tracking-widest text-muted">Example Title</label>
+                                <input 
+                                    type="text" 
+                                    placeholder="e.g. Objections - Pricing"
+                                    value={newExampleTitle}
+                                    onChange={(e) => setNewExampleTitle(e.target.value)}
+                                    className="w-full bg-bg-base border border-border rounded-xl px-4 py-3 text-white focus:border-accent/40 outline-none"
+                                />
+                            </div>
+                            <div className="space-y-2">
+                                <label className="text-xs font-mono uppercase tracking-widest text-muted">JSON Content (History Array)</label>
+                                <textarea 
+                                    placeholder='{"tags": {"industry": "real-estate"}, "history": [...]}'
+                                    value={newExampleJSON}
+                                    onChange={(e) => setNewExampleJSON(e.target.value)}
+                                    className="w-full h-64 bg-bg-base border border-border rounded-xl px-4 py-3 text-white font-mono text-xs focus:border-accent/40 outline-none resize-none"
+                                />
+                                <p className="text-[10px] text-muted italic">Paste the history JSON array including tags here.</p>
+                            </div>
+                        </div>
                         <div className="p-6 border-t border-border flex justify-end gap-4 bg-bg-elevated">
-                            <button onClick={() => setIsReviewOpen(false)} className="px-6 py-2 text-muted hover:text-white">Cancel</button>
-                            <button onClick={handleSaveReview} className="px-8 py-2 bg-accent text-bg-base font-bold rounded-xl flex items-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(46,255,161,0.2)]">
-                                <Save size={16} /> Save Review
+                            <button onClick={() => setIsAddOpen(false)} className="px-6 py-2 text-muted hover:text-white">Cancel</button>
+                            <button 
+                                onClick={handleAddExample}
+                                className="px-8 py-2 bg-accent text-bg-base font-bold rounded-xl flex items-center gap-2 transition-all hover:scale-105 active:scale-95 shadow-[0_0_20px_rgba(46,255,161,0.2)]"
+                            >
+                                <Save size={16} /> Save Example
                             </button>
                         </div>
                     </div>

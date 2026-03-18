@@ -15,9 +15,14 @@ export const useLeads = () => {
                 .select('*')
                 .order('created_at', { ascending: false })
 
-            if (error) throw error
+            if (error) {
+                console.error("[Supabase Leads Error]:", error)
+                throw error
+            }
+            console.log("[Supabase Leads]:", data?.length, "records found.")
             setLeads(data || [])
         } catch (err: any) {
+            console.error("[useLeads Hook Exception]:", err)
             setError(err.message)
         } finally {
             setIsLoading(false)

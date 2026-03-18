@@ -28,12 +28,18 @@ const Leads: React.FC<LeadsProps> = ({ leads, isLoading, refetch }) => {
                     </p>
                 </div>
                 <div className="flex-1 overflow-hidden">
-                    <LeadsList
-                        leads={leads}
-                        selectedId={selectedLeadId}
-                        onSelect={setSelectedLeadId}
-                        isLoading={isLoading}
-                    />
+                    {isLoading ? (
+                         <div className="flex-1 flex items-center justify-center">
+                            <div className="w-8 h-8 border-2 border-accent border-t-transparent rounded-full animate-spin"></div>
+                        </div>
+                    ) : (
+                        <LeadsList
+                            leads={leads}
+                            selectedId={selectedLeadId}
+                            onSelect={setSelectedLeadId}
+                            isLoading={isLoading}
+                        />
+                    )}
                 </div>
             </div>
 
