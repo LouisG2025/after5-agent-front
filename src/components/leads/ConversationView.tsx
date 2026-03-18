@@ -2,6 +2,7 @@ import React, { useEffect, useRef, useState } from 'react'
 import type { Lead, Message, ConversationState } from '../../types'
 import { Badge } from '../ui/Badge'
 import { MessageSquare, Brain, CheckCircle, XCircle, Loader } from 'lucide-react'
+import { supabase } from '../../lib/supabase'
 
 interface ConversationViewProps {
     messages: Message[]
@@ -14,13 +15,6 @@ type ToastType = 'success' | 'error' | 'loading'
 interface Toast {
     message: string
     type: ToastType
-}
-
-const getApiBase = () => {
-    const isProd = import.meta.env.PROD || window.location.hostname !== 'localhost'
-    const defaultApiUrl = isProd ? 'https://after5-agent-production.up.railway.app' : 'http://localhost:8000'
-    const apiUrl = import.meta.env.VITE_API_URL || defaultApiUrl
-    return `${apiUrl}/training`
 }
 
 export const ConversationView: React.FC<ConversationViewProps> = ({
@@ -43,6 +37,7 @@ export const ConversationView: React.FC<ConversationViewProps> = ({
         }
     }
 
+    // Write directly to Supabase training_data table — no backend needed
     const handleCollect = async () => {
         if (messages.length === 0) {
             showToast('No messages to collect', 'error')
@@ -51,31 +46,28 @@ export const ConversationView: React.FC<ConversationViewProps> = ({
         setIsCollecting(true)
         showToast('Collecting for training pool...', 'loading')
         try {
-            const res = await fetch(`${getApiBase()}/worthy/manual`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    lead_id: lead.id,
-                    history: messages.map(m => ({
-                        role: m.direction === 'outbound' ? 'assistant' : 'user',
-                        content: m.content
-                    }))
-                })
+            const { error } = await supabase.from('training_data').insert({
+                lead_id: lead.id,
+                conversation_history: messages.map(m => ({
+                    role: m.direction === 'outbound' ? 'assistant' : 'user',
+                    content: m.content
+                })),
+                outcome: lead.outcome || 'In Progress',
+                is_reviewed: false,
+                source: 'manual',
+                created_at: new Date().toISOString()
             })
-            if (res.ok) {
-                showToast('Added to Training Pool ✓', 'success')
-            } else {
-                const data = await res.json().catch(() => ({}))
-                showToast(data.detail || data.message || `Backend error ${res.status}`, 'error')
-            }
-        } catch (error) {
+            if (error) throw error
+            showToast('Added to Training Pool ✓', 'success')
+        } catch (error: any) {
             console.error('Collection failed:', error)
-            showToast('Cannot reach backend API', 'error')
+            showToast(error.message || 'Failed to collect', 'error')
         } finally {
             setIsCollecting(false)
         }
     }
 
+    // Write feedback directly to Supabase — tag with immediate_feedback field
     const handleQuickFeedback = async (type: string) => {
         if (messages.length === 0) {
             showToast('No messages to evaluate', 'error')
@@ -84,28 +76,23 @@ export const ConversationView: React.FC<ConversationViewProps> = ({
         setActiveFeedback(type)
         showToast(`Synchronizing ${type} feedback...`, 'loading')
         try {
-            const res = await fetch(`${getApiBase()}/worthy/manual`, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    lead_id: lead.id,
-                    history: messages.map(m => ({
-                        role: m.direction === 'outbound' ? 'assistant' : 'user',
-                        content: m.content
-                    })),
-                    immediate_feedback: type,
-                    is_reviewed: true
-                })
+            const { error } = await supabase.from('training_data').insert({
+                lead_id: lead.id,
+                conversation_history: messages.map(m => ({
+                    role: m.direction === 'outbound' ? 'assistant' : 'user',
+                    content: m.content
+                })),
+                outcome: lead.outcome || 'In Progress',
+                immediate_feedback: type,
+                is_reviewed: true,
+                source: 'quick_feedback',
+                created_at: new Date().toISOString()
             })
-            if (res.ok) {
-                showToast(`${type} feedback synchronized ✓`, 'success')
-            } else {
-                const data = await res.json().catch(() => ({}))
-                showToast(data.detail || data.message || `Backend error ${res.status}`, 'error')
-            }
-        } catch (error) {
+            if (error) throw error
+            showToast(`${type} feedback synchronized ✓`, 'success')
+        } catch (error: any) {
             console.error('Feedback failed:', error)
-            showToast('Cannot reach backend API', 'error')
+            showToast(error.message || 'Failed to sync feedback', 'error')
         } finally {
             setActiveFeedback(null)
         }
