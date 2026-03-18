@@ -21,7 +21,11 @@ export const ConversationView: React.FC<ConversationViewProps> = ({
     const scrollRef = useRef<HTMLDivElement>(null)
 
     const handleCollect = async () => {
-        const API_BASE = (import.meta.env.VITE_API_URL || "http://localhost:8000") + "/training"
+        const isProd = import.meta.env.PROD || window.location.hostname !== 'localhost'
+        const defaultApiUrl = isProd ? 'https://after5-agent-production.up.railway.app' : 'http://localhost:8000'
+        const apiUrl = import.meta.env.VITE_API_URL || defaultApiUrl
+        const API_BASE = `${apiUrl}/training`
+        
         try {
             const res = await fetch(`${API_BASE}/worthy/manual`, {
                 method: 'POST',
@@ -36,6 +40,31 @@ export const ConversationView: React.FC<ConversationViewProps> = ({
             }
         } catch (error) {
             console.error("Collection failed:", error)
+        }
+    }
+
+    const handleQuickFeedback = async (type: string) => {
+        const isProd = import.meta.env.PROD || window.location.hostname !== 'localhost'
+        const defaultApiUrl = isProd ? 'https://after5-agent-production.up.railway.app' : 'http://localhost:8000'
+        const apiUrl = import.meta.env.VITE_API_URL || defaultApiUrl
+        const API_BASE = `${apiUrl}/training`
+
+        try {
+            const res = await fetch(`${API_BASE}/worthy/manual`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    lead_id: lead.id,
+                    history: messages,
+                    immediate_feedback: type,
+                    is_reviewed: true // Auto-review if sent from direct view
+                })
+            })
+            if (res.ok) {
+                alert(`${type} feedback synchronized!`)
+            }
+        } catch (error) {
+            console.error("Feedback synchronization failed:", error)
         }
     }
 
@@ -119,8 +148,32 @@ export const ConversationView: React.FC<ConversationViewProps> = ({
                 )}
             </div>
 
-            {/* Status Footer */}
-            <div className="pt-8 border-t border-white/5 px-2">
+            {/* Status Footer & Quick Feedback */}
+            <div className="pt-8 border-t border-white/5 px-2 space-y-4">
+                <div className="flex items-center justify-between px-2">
+                    <span className="text-[10px] text-muted/30 font-black uppercase tracking-[0.3em] italic">Neural Flow Feedback</span>
+                    <div className="flex gap-3">
+                        <button 
+                            onClick={() => handleQuickFeedback('TONE')}
+                            className="px-4 py-1.5 rounded-xl border border-white/5 bg-white/[0.02] text-[9px] font-black text-amber-400/60 hover:text-amber-400 hover:bg-amber-400/5 hover:border-amber-400/20 transition-all uppercase tracking-widest"
+                        >
+                            TONE
+                        </button>
+                        <button 
+                            onClick={() => handleQuickFeedback('LOGIC')}
+                            className="px-4 py-1.5 rounded-xl border border-white/5 bg-white/[0.02] text-[9px] font-black text-blue-400/60 hover:text-blue-400 hover:bg-blue-400/5 hover:border-blue-400/20 transition-all uppercase tracking-widest"
+                        >
+                            LOGIC
+                        </button>
+                        <button 
+                            onClick={() => handleQuickFeedback('SALES')}
+                            className="px-4 py-1.5 rounded-xl border border-white/5 bg-white/[0.02] text-[9px] font-black text-accent/60 hover:text-accent hover:bg-accent/5 hover:border-accent/20 transition-all uppercase tracking-widest"
+                        >
+                            SALES
+                        </button>
+                    </div>
+                </div>
+
                 <div className="bg-white/[0.02] rounded-2xl px-6 py-4 border border-white/5 flex items-center justify-between">
                     <div className="flex items-center gap-3">
                         <div className="w-1.5 h-1.5 rounded-full bg-muted/40 shadow-[0_0_8px_rgba(255,255,255,0.1)]"></div>

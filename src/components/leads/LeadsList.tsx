@@ -56,22 +56,22 @@ export const LeadsList: React.FC<LeadsListProps> = ({
                     <select
                         value={tempFilter}
                         onChange={(e) => setTempFilter(e.target.value)}
-                        className="flex-1 bg-white/[0.03] border border-white/5 rounded-xl px-3 py-2 text-[10px] font-black uppercase tracking-widest text-muted/60 outline-none focus:border-accent/30 appearance-none cursor-pointer hover:bg-white/[0.05] transition-all"
+                        className="flex-1 bg-white/[0.03] border border-white/5 rounded-xl px-4 py-2 text-[9px] font-black uppercase tracking-widest text-muted/40 outline-none focus:border-accent/40 focus:text-accent appearance-none cursor-pointer hover:bg-white/[0.06] transition-all text-center"
                     >
-                        <option value="All">All Tiers</option>
-                        <option value="Hot">Hot</option>
-                        <option value="Warm">Warm</option>
-                        <option value="Cold">Cold</option>
+                        <option value="All" className="bg-[#090b14] text-white">All Tiers</option>
+                        <option value="Hot" className="bg-[#090b14] text-white">Hot</option>
+                        <option value="Warm" className="bg-[#090b14] text-white">Warm</option>
+                        <option value="Cold" className="bg-[#090b14] text-white">Cold</option>
                     </select>
                     <select
                         value={outcomeFilter}
                         onChange={(e) => setOutcomeFilter(e.target.value)}
-                        className="flex-1 bg-white/[0.03] border border-white/5 rounded-xl px-3 py-2 text-[10px] font-black uppercase tracking-widest text-muted/60 outline-none focus:border-accent/30 appearance-none cursor-pointer hover:bg-white/[0.05] transition-all"
+                        className="flex-1 bg-white/[0.03] border border-white/5 rounded-xl px-4 py-2 text-[9px] font-black uppercase tracking-widest text-muted/40 outline-none focus:border-accent/40 focus:text-accent appearance-none cursor-pointer hover:bg-white/[0.06] transition-all text-center"
                     >
-                        <option value="All">All Metrics</option>
-                        <option value="In Progress">In Progress</option>
-                        <option value="Meeting Booked">Booked</option>
-                        <option value="Not Interested">Dropped</option>
+                        <option value="All" className="bg-[#090b14] text-white">All Metrics</option>
+                        <option value="In Progress" className="bg-[#090b14] text-white">In Progress</option>
+                        <option value="Meeting Booked" className="bg-[#090b14] text-white">Booked</option>
+                        <option value="Not Interested" className="bg-[#090b14] text-white">Dropped</option>
                     </select>
                 </div>
 

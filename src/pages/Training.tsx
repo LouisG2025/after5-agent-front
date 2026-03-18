@@ -26,7 +26,10 @@ const Training: React.FC = () => {
         priority: 1
     })
 
-    const API_BASE = (import.meta.env.VITE_API_URL || "http://localhost:8000") + "/training" 
+    const isProd = import.meta.env.PROD || window.location.hostname !== 'localhost'
+    const defaultApiUrl = isProd ? 'https://after5-agent-production.up.railway.app' : 'http://localhost:8000'
+    const apiUrl = import.meta.env.VITE_API_URL || defaultApiUrl
+    const API_BASE = `${apiUrl}/training`
 
     useEffect(() => {
         fetchData()
@@ -555,12 +558,12 @@ const Training: React.FC = () => {
                                     <select 
                                         value={brainForm.category}
                                         onChange={(e) => setBrainForm({...brainForm, category: e.target.value})}
-                                        className="input-modern w-full !rounded-[24px] !p-6 !bg-white/[0.02] border-white/5 focus:border-purple-400/40 font-black italic uppercase tracking-widest text-[11px] outline-none"
+                                        className="input-modern w-full !rounded-[24px] !p-6 !bg-white/[0.02] border border-white/5 focus:border-accent/40 font-black italic uppercase tracking-widest text-[11px] outline-none appearance-none cursor-pointer hover:bg-white/[0.04] transition-all"
                                     >
-                                        <option value="sales">Sales Strategy</option>
-                                        <option value="voice">Brand Voice</option>
-                                        <option value="objection">Objection Handling</option>
-                                        <option value="success">Success Path</option>
+                                        <option value="sales" className="bg-[#090b14] text-white">Sales Strategy</option>
+                                        <option value="voice" className="bg-[#090b14] text-white">Brand Voice</option>
+                                        <option value="objection" className="bg-[#090b14] text-white">Objection Handling</option>
+                                        <option value="success" className="bg-[#090b14] text-white">Success Path</option>
                                     </select>
                                 </div>
                                 <div className="space-y-4">
