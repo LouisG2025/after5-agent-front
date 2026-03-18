@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react'
 import { supabase } from '../../lib/supabase'
 import type { Message, LLMSession } from '../../types'
-import { Activity, Brain, MessageCircle, Zap, DollarSign, Cpu } from 'lucide-react'
+import { Activity, MessageCircle, Zap, DollarSign, Cpu } from 'lucide-react'
 
 type FeedItem =
     | { type: 'message'; data: Message }
