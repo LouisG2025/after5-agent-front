@@ -81,18 +81,18 @@ const AlbertStatus: React.FC = () => {
     ]
 
     return (
-        <div className="p-8 space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700 h-full overflow-y-auto pb-20">
-            <div className="flex items-center justify-between">
+        <div className="p-8 space-y-12 animate-fade-up h-full overflow-y-auto pb-20 max-w-[1600px] mx-auto">
+            <div className="flex items-center justify-between px-2">
                 <div>
-                    <h1 className="text-3xl font-black italic tracking-tighter uppercase italic">
-                        Albert <span className="text-accent">Pulse</span>
+                    <h1 className="text-4xl font-black italic tracking-tighter uppercase italic">
+                        Albert <span className="text-gradient">Pulse</span>
                     </h1>
-                    <p className="text-xs text-muted font-mono uppercase tracking-widest mt-1">Autonomous Agent Performance Report</p>
+                    <p className="text-[10px] text-muted/60 font-black uppercase tracking-[0.3em] mt-2 italic">Neural Network Observability Platform</p>
                 </div>
-                <div className="flex items-center gap-4">
-                    <div className="flex items-center gap-2 px-3 py-1.5 bg-accent/10 border border-accent/20 rounded-full">
-                        <div className="w-2 h-2 rounded-full bg-accent animate-pulse"></div>
-                        <span className="text-[10px] font-bold text-accent uppercase tracking-tighter">System Nominal</span>
+                <div className="flex items-center gap-6">
+                    <div className="flex items-center gap-3 px-4 py-2 bg-accent/5 border border-accent/20 rounded-2xl shadow-[0_0_20px_rgba(46,255,161,0.05)]">
+                        <div className="w-2 h-2 rounded-full bg-accent animate-pulse shadow-[0_0_8px_rgba(46,255,161,0.5)]"></div>
+                        <span className="text-[11px] font-black text-accent uppercase tracking-widest">Core Synchronized</span>
                     </div>
                 </div>
             </div>
@@ -109,17 +109,24 @@ const AlbertStatus: React.FC = () => {
                 ))}
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                <div className="bg-bg-card border border-border rounded-3xl p-8 space-y-8">
-                    <h2 className="text-[10px] font-mono uppercase tracking-[0.2em] text-muted">Conversation State Distribution</h2>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                <div className="glass-card !rounded-[40px] border-white/5 p-10 space-y-10 bg-[#090b14]/20 shadow-2xl relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-accent/5 blur-[60px] rounded-full group-hover:bg-accent/10 transition-all duration-700"></div>
+                    <h2 className="text-[11px] font-black uppercase tracking-[0.3em] text-muted/40 mb-2">Architectural State Vectorization</h2>
                     <StateDistribution data={analytics.distribution} />
                 </div>
-                <div className="bg-bg-card border border-border rounded-3xl p-8 space-y-8">
-                    <h2 className="text-[10px] font-mono uppercase tracking-[0.2em] text-muted">Source Conversion Performance</h2>
+                <div className="glass-card !rounded-[40px] border-white/5 p-10 space-y-10 bg-[#090b14]/20 shadow-2xl relative overflow-hidden group">
+                    <div className="absolute top-0 right-0 w-32 h-32 bg-purple-500/5 blur-[60px] rounded-full group-hover:bg-purple-500/10 transition-all duration-700"></div>
+                    <h2 className="text-[11px] font-black uppercase tracking-[0.3em] text-muted/40 mb-2">Ingestion Source Performance Metrics</h2>
                     {analytics.sourcePerformance.length > 0 ? (
                         <SourcePerformance data={analytics.sourcePerformance} />
                     ) : (
-                        <p className="text-xs text-muted font-mono text-center py-8">No lead source data yet</p>
+                        <div className="flex flex-col items-center justify-center py-20 text-center space-y-4">
+                            <div className="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center">
+                                <Activity size={32} className="text-muted/20" />
+                            </div>
+                            <p className="text-[10px] text-muted/40 font-black uppercase tracking-widest">Awaiting Registry Data Stream</p>
+                        </div>
                     )}
                 </div>
             </div>

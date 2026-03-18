@@ -70,9 +70,9 @@ const Overview: React.FC<OverviewProps> = ({ leads, isLoading }) => {
     const selectedLead = useMemo(() => leads.find(l => l.id === selectedLeadId), [leads, selectedLeadId])
 
     return (
-        <div className="p-8 space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700 max-w-[1600px] mx-auto">
+        <div className="p-8 space-y-12 animate-fade-up max-w-[1700px] mx-auto">
             {/* Header Stats Row */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-6">
                 {isLoading
                     ? Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)
                     : stats.map((s, i) => (
@@ -89,18 +89,21 @@ const Overview: React.FC<OverviewProps> = ({ leads, isLoading }) => {
             </div>
 
             {/* Main Interactive Grid */}
-            <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
+            <div className="grid grid-cols-1 lg:grid-cols-4 gap-10 items-start">
                 {/* Left: Lead Sidebar */}
                 <div className="lg:col-span-1 space-y-6">
-                    <div className="flex items-center justify-between">
-                        <h2 className="text-[10px] font-mono uppercase tracking-[0.2em] text-muted flex items-center gap-2">
-                            <Users size={14} className="text-accent" /> Recent Activity
+                    <div className="flex items-center justify-between px-2">
+                        <h2 className="text-[11px] font-black uppercase tracking-[0.3em] text-muted flex items-center gap-2.5">
+                            <Activity size={14} className="text-accent" /> Live Registry
                         </h2>
-                        <span className="text-[9px] font-bold px-2 py-0.5 bg-accent/10 text-accent rounded-full uppercase tracking-widest">Live</span>
+                        <div className="flex items-center gap-2">
+                            <div className="w-1.5 h-1.5 rounded-full bg-accent animate-pulse shadow-[0_0_8px_rgba(46,255,161,0.5)]"></div>
+                            <span className="text-[10px] font-black text-accent uppercase tracking-widest">Active</span>
+                        </div>
                     </div>
-                    <div className="space-y-3 max-h-[700px] overflow-y-auto pr-2 custom-scrollbar">
+                    <div className="space-y-4 max-h-[800px] overflow-y-auto pr-3 custom-scrollbar">
                         {isLoading
-                            ? Array.from({ length: 5 }).map((_, i) => <SkeletonCard key={i} lines={2} height="h-20" />)
+                            ? Array.from({ length: 5 }).map((_, i) => <SkeletonCard key={i} lines={2} height="h-24" />)
                             : leads.map(lead => (
                                 <LeadCard
                                     key={lead.id}
@@ -115,7 +118,7 @@ const Overview: React.FC<OverviewProps> = ({ leads, isLoading }) => {
                 </div>
 
                 {/* Right: Detailed View or Intelligence Placeholder */}
-                <div className="lg:col-span-3 h-[750px] bg-bg-card rounded-[32px] border border-border overflow-hidden flex flex-col shadow-2xl relative">
+                <div className="lg:col-span-3 h-[850px] glass-card !rounded-[48px] border-white/5 overflow-hidden flex flex-col shadow-[0_32px_64px_-12px_rgba(0,0,0,0.6)] relative bg-[#090b14]/20">
                     {selectedLead ? (
                         <LeadDetail
                             lead={selectedLead}
@@ -123,29 +126,35 @@ const Overview: React.FC<OverviewProps> = ({ leads, isLoading }) => {
                             refetch={() => { }}
                         />
                     ) : (
-                        <div className="m-auto flex flex-col items-center text-center p-12 max-w-lg">
-                            <div className="relative mb-10">
-                                <div className="absolute inset-0 bg-accent/20 blur-3xl rounded-full scale-150 animate-pulse"></div>
-                                <div className="relative w-24 h-24 bg-bg-base rounded-[2rem] flex items-center justify-center border border-accent/20 shadow-2xl rotate-3 transform transition-transform hover:rotate-0 duration-500">
-                                    <Cpu className="text-accent" size={42} />
+                        <div className="m-auto flex flex-col items-center text-center p-12 max-w-xl">
+                            <div className="relative mb-12">
+                                <div className="absolute inset-0 bg-accent/10 blur-[80px] rounded-full scale-150 animate-pulse"></div>
+                                <div className="relative w-28 h-28 glass-card border-accent/20 flex items-center justify-center rotate-6 transform transition-all hover:rotate-0 hover:scale-105 duration-700 shadow-2xl">
+                                    <Cpu className="text-accent drop-shadow-[0_0_15px_rgba(46,255,161,0.3)]" size={48} />
                                 </div>
-                                <div className="absolute -bottom-2 -right-2 w-10 h-10 bg-bg-elevated rounded-xl border border-border flex items-center justify-center -rotate-12 shadow-xl">
-                                    <Activity className="text-purple-400" size={18} />
+                                <div className="absolute -bottom-3 -right-3 w-12 h-12 glass-card border-purple-500/20 flex items-center justify-center -rotate-12 shadow-2xl">
+                                    <Activity className="text-purple-400" size={20} />
                                 </div>
                             </div>
-                            <h3 className="text-2xl font-bold text-white tracking-tight">Intelligence Monitoring</h3>
-                            <p className="text-muted text-sm mt-4 leading-relaxed">
-                                Select a lead from the activity panel to initialize real-time Albert Pulse monitoring.
-                                View live conversation threads, BANT signal analysis, and AI reasoning logs.
+                            <h3 className="text-4xl font-black text-white tracking-tight">
+                                Neural <span className="text-gradient">Observation</span>
+                            </h3>
+                            <p className="text-muted font-medium text-sm mt-6 leading-relaxed max-w-md mx-auto">
+                                Initialize high-fidelity Albert Monitoring by selecting a registry profile. 
+                                Gain real-time visibility into neural extracted signals and conversation telemetry.
                             </p>
-                            <div className="grid grid-cols-2 gap-4 mt-10 w-full text-left">
-                                <div className="p-4 bg-white/5 rounded-2xl border border-border/50">
-                                    <p className="text-[10px] font-mono text-accent uppercase tracking-widest mb-1">Observability</p>
-                                    <p className="text-[11px] text-muted leading-tight">Monitor model latency and token costs per interaction.</p>
+                            <div className="grid grid-cols-2 gap-6 mt-12 w-full text-left">
+                                <div className="p-5 glass-card border-none bg-white/[0.02] hover:bg-white/[0.04] transition-all group">
+                                    <p className="text-[11px] font-black text-accent uppercase tracking-[0.2em] mb-2 flex items-center gap-2">
+                                        <Zap size={12} className="group-hover:rotate-12 transition-transform" /> Observability
+                                    </p>
+                                    <p className="text-[12px] text-muted leading-relaxed font-medium">Quantify model precision, token throughput, and real-time operational costs.</p>
                                 </div>
-                                <div className="p-4 bg-white/5 rounded-2xl border border-border/50">
-                                    <p className="text-[10px] font-mono text-purple-400 uppercase tracking-widest mb-1">Synthesis</p>
-                                    <p className="text-[11px] text-muted leading-tight">Albert extracts qualification facts in real-time.</p>
+                                <div className="p-5 glass-card border-none bg-white/[0.02] hover:bg-white/[0.04] transition-all group">
+                                    <p className="text-[11px] font-black text-purple-400 uppercase tracking-[0.2em] mb-2 flex items-center gap-2">
+                                        <TrendingUp size={12} className="group-hover:scale-110 transition-transform" /> Synthesis
+                                    </p>
+                                    <p className="text-[12px] text-muted leading-relaxed font-medium">Autonomous extraction of BANT vectors and strategic sales psychological alignment.</p>
                                 </div>
                             </div>
                         </div>
@@ -154,11 +163,12 @@ const Overview: React.FC<OverviewProps> = ({ leads, isLoading }) => {
             </div>
 
             {/* Bottom Row: System Pulse */}
-            <div className="pt-6">
-                <div className="flex items-center justify-between mb-6">
-                    <h2 className="text-[10px] font-mono uppercase tracking-[0.2em] text-muted flex items-center gap-2">
-                        <Activity size={14} className="text-emerald-400" /> System Pulse Feed
+            <div className="pt-8 border-t border-white/5">
+                <div className="flex items-center justify-between mb-8 px-2">
+                    <h2 className="text-[11px] font-black uppercase tracking-[0.3em] text-muted flex items-center gap-3">
+                        <Activity size={16} className="text-accent" /> System Telemetry Feed
                     </h2>
+                    <span className="text-[10px] font-black text-muted/40 uppercase tracking-widest">Real-time Stream / Node 01</span>
                 </div>
                 <ActivityFeed />
             </div>

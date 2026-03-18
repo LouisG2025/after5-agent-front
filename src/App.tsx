@@ -52,14 +52,16 @@ const AppContent: React.FC = () => {
   }
 
   return (
-    <div className="h-screen flex overflow-hidden bg-bg-base font-sans selection:bg-accent/30 selection:text-white">
+    <div className="h-screen flex overflow-hidden bg-[#06080f] font-sans selection:bg-accent/30 selection:text-white relative">
+      <div className="neural-overlay" />
+      
       <Sidebar
         isOpen={isSidebarOpen}
         setIsOpen={setIsSidebarOpen}
         onLogout={handleLogout}
       />
 
-      <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative">
+      <main className="flex-1 flex flex-col min-w-0 overflow-hidden relative z-10">
         <Header
           title={getTitle()}
           isConnected={isConnected}
@@ -68,7 +70,7 @@ const AppContent: React.FC = () => {
           onToggleMenu={() => setIsSidebarOpen(true)}
         />
 
-        <div className="flex-1 overflow-y-auto custom-scrollbar">
+        <div className="flex-1 overflow-y-auto custom-scrollbar bg-white/[0.01]">
           <Routes>
             <Route path="/" element={<Overview leads={leads} isLoading={isLoading} />} />
             <Route path="/leads" element={<Leads leads={leads} isLoading={isLoading} refetch={refetch} />} />

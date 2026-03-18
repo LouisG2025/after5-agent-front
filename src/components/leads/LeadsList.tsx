@@ -39,26 +39,26 @@ export const LeadsList: React.FC<LeadsListProps> = ({
     }, [leads, search, tempFilter, outcomeFilter, sortBy])
 
     return (
-        <div className="flex flex-col h-full">
-            <div className="p-6 border-b border-border space-y-4 bg-bg-sidebar/20">
-                <div className="relative">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted" size={16} />
+        <div className="flex flex-col h-full bg-[#090b14]/10">
+            <div className="p-8 border-b border-white/5 space-y-6 bg-white/[0.01]">
+                <div className="relative group">
+                    <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-muted/40 group-focus-within:text-accent transition-colors" size={18} />
                     <input
                         type="text"
-                        placeholder="Search name, company..."
+                        placeholder="Neural Search..."
                         value={search}
                         onChange={(e) => setSearch(e.target.value)}
-                        className="w-full bg-bg-base border border-border rounded-xl pl-10 pr-4 py-2 text-sm focus:border-accent/50 focus:ring-1 focus:ring-accent/20 outline-none transition-all"
+                        className="w-full bg-white/[0.03] border border-white/5 rounded-2xl pl-12 pr-4 py-3 text-sm focus:border-accent/40 focus:bg-white/[0.05] outline-none transition-all placeholder:text-muted/20 font-medium tracking-tight"
                     />
                 </div>
 
-                <div className="flex gap-2">
+                <div className="flex gap-3">
                     <select
                         value={tempFilter}
                         onChange={(e) => setTempFilter(e.target.value)}
-                        className="flex-1 bg-bg-elevated border border-border rounded-lg px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider text-muted outline-none focus:border-accent/30"
+                        className="flex-1 bg-white/[0.03] border border-white/5 rounded-xl px-3 py-2 text-[10px] font-black uppercase tracking-widest text-muted/60 outline-none focus:border-accent/30 appearance-none cursor-pointer hover:bg-white/[0.05] transition-all"
                     >
-                        <option value="All">All Temps</option>
+                        <option value="All">All Tiers</option>
                         <option value="Hot">Hot</option>
                         <option value="Warm">Warm</option>
                         <option value="Cold">Cold</option>
@@ -66,37 +66,44 @@ export const LeadsList: React.FC<LeadsListProps> = ({
                     <select
                         value={outcomeFilter}
                         onChange={(e) => setOutcomeFilter(e.target.value)}
-                        className="flex-1 bg-bg-elevated border border-border rounded-lg px-2 py-1.5 text-[10px] font-bold uppercase tracking-wider text-muted outline-none focus:border-accent/30"
+                        className="flex-1 bg-white/[0.03] border border-white/5 rounded-xl px-3 py-2 text-[10px] font-black uppercase tracking-widest text-muted/60 outline-none focus:border-accent/30 appearance-none cursor-pointer hover:bg-white/[0.05] transition-all"
                     >
-                        <option value="All">All Outcomes</option>
+                        <option value="All">All Metrics</option>
                         <option value="In Progress">In Progress</option>
                         <option value="Meeting Booked">Booked</option>
                         <option value="Not Interested">Dropped</option>
                     </select>
                 </div>
 
-                <div className="flex items-center justify-between text-[9px] font-mono text-muted uppercase tracking-widest pt-1">
-                    <span>{filteredLeads.length} Leads</span>
-                    <div className="flex gap-3">
-                        <button onClick={() => setSortBy('newest')} className={sortBy === 'newest' ? 'text-accent' : ''}>Newest</button>
-                        <button onClick={() => setSortBy('signal')} className={sortBy === 'signal' ? 'text-accent' : ''}>Signal</button>
+                <div className="flex items-center justify-between text-[10px] font-black text-muted/40 uppercase tracking-[0.2em] px-1">
+                    <span className="flex items-center gap-2">
+                        <div className="w-1 h-1 rounded-full bg-accent/40"></div>
+                        {filteredLeads.length} Registry Objects
+                    </span>
+                    <div className="flex gap-4">
+                        <button onClick={() => setSortBy('newest')} className={`transition-colors hover:text-white ${sortBy === 'newest' ? 'text-accent' : ''}`}>Newest</button>
+                        <button onClick={() => setSortBy('signal')} className={`transition-colors hover:text-white ${sortBy === 'signal' ? 'text-accent' : ''}`}>Signal</button>
                     </div>
                 </div>
             </div>
 
-            <div className="flex-1 overflow-y-auto p-4 space-y-3 custom-scrollbar">
-                {filteredLeads.map((lead) => (
-                    <LeadCard
-                        key={lead.id}
-                        lead={lead}
-                        active={selectedId === lead.id}
-                        onClick={() => onSelect(lead.id)}
-                        showState={mode === 'conversations'}
-                    />
+            <div className="flex-1 overflow-y-auto p-6 space-y-4 custom-scrollbar">
+                {filteredLeads.map((lead, idx) => (
+                    <div key={lead.id} className="animate-fade-up" style={{ animationDelay: `${idx * 40}ms` }}>
+                        <LeadCard
+                            lead={lead}
+                            active={selectedId === lead.id}
+                            onClick={() => onSelect(lead.id)}
+                            showState={mode === 'conversations'}
+                        />
+                    </div>
                 ))}
                 {filteredLeads.length === 0 && (
-                    <div className="py-20 text-center opacity-20 italic text-sm">
-                        No leads matching filters
+                    <div className="py-32 text-center space-y-4 opacity-40">
+                        <div className="w-12 h-12 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-2">
+                            <Search size={20} className="text-muted" />
+                        </div>
+                        <p className="text-[10px] font-black uppercase tracking-widest italic">Signal match: 0%</p>
                     </div>
                 )}
             </div>

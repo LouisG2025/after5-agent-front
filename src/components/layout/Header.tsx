@@ -26,41 +26,48 @@ export const Header: React.FC<HeaderProps> = ({
     }, [lastUpdated])
 
     return (
-        <header className="h-16 border-b border-border flex items-center justify-between px-6 bg-bg-base/80 backdrop-blur sticky top-0 z-30">
-            <div className="flex items-center gap-4">
+        <header className="h-24 border-b border-white/5 flex items-center justify-between px-10 bg-black/10 backdrop-blur-3xl sticky top-0 z-30 shadow-[0_1px_20px_rgba(0,0,0,0.5)]">
+            <div className="flex items-center gap-6">
                 <button
                     onClick={onToggleMenu}
-                    className="lg:hidden p-2 -ml-2 text-muted hover:text-white transition-colors"
+                    className="lg:hidden w-12 h-12 rounded-xl bg-white/5 flex items-center justify-center text-muted hover:text-white transition-all border border-white/10"
                 >
-                    <Menu size={20} />
+                    <Menu size={24} />
                 </button>
-                <h1 className="text-sm font-bold uppercase tracking-[0.2em] text-white">
-                    {title}
-                </h1>
+                <div className="flex flex-col">
+                    <h1 className="text-2xl font-black italic uppercase tracking-tighter text-white">
+                        <span className="text-gradient">{title}</span> Telemetry
+                    </h1>
+                    <p className="text-[9px] text-muted/40 font-black uppercase tracking-[0.3em] mt-1 italic">Real-time Data Stream</p>
+                </div>
             </div>
 
-            <div className="flex items-center gap-6">
-                <div className="hidden md:flex items-center gap-6 text-[10px] font-mono uppercase tracking-[0.15em]">
-                    <div className="flex items-center gap-4">
-                        <div className="flex items-center gap-2">
-                            <div className={`w-1.5 h-1.5 rounded-full ${isConnected ? 'bg-accent pulse-dot' : 'bg-amber-500 animate-pulse'}`}></div>
-                            <span className={isConnected ? 'text-accent font-bold' : 'text-amber-500'}>
-                                {isConnected ? 'Live Status' : 'Reconnecting...'}
+            <div className="flex items-center gap-10">
+                <div className="hidden md:flex items-center gap-10">
+                    <div className="flex items-center gap-8">
+                        <div className="flex items-center gap-3 bg-white/[0.02] border border-white/5 px-5 py-2.5 rounded-2xl shadow-inner group hover:bg-white/[0.04] transition-all">
+                            <div className={`w-2.5 h-2.5 rounded-full ${isConnected ? 'bg-accent shadow-[0_0_10px_#2effa1] pulse-dot' : 'bg-amber-500 animate-pulse shadow-[0_0_10px_#f59e0b]'}`}></div>
+                            <span className={`text-[11px] font-black uppercase tracking-widest italic ${isConnected ? 'text-accent' : 'text-amber-500'}`}>
+                                {isConnected ? 'Link Active' : 'Restablishing Link'}
+                            </span>
+                            <div className="w-px h-4 bg-white/10 mx-2"></div>
+                            <span className="text-[10px] text-muted/40 font-black uppercase tracking-widest italic">
+                                Sync: {seconds}s
                             </span>
                         </div>
-                        <span className="text-muted border-l border-border pl-4">
-                            Updated {seconds}s ago
-                        </span>
                     </div>
 
-                    <div className="px-3 py-1 bg-bg-elevated border border-border rounded-full text-white/80">
-                        {leadsCount} Leads
+                    <div className="flex items-center gap-4 bg-accent/5 border border-accent/20 px-6 py-2.5 rounded-2xl shadow-inner group hover:bg-accent/10 transition-all">
+                        <div className="w-2 h-2 rounded-full bg-accent animate-pulse"></div>
+                        <span className="text-[11px] font-black italic text-accent uppercase tracking-widest">
+                            {leadsCount} Registered Leads
+                        </span>
                     </div>
                 </div>
 
                 {!isConnected && (
-                    <div className="md:hidden flex items-center gap-2 text-amber-500">
-                        <CircleAlert size={14} className="animate-pulse" />
+                    <div className="md:hidden w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500">
+                        <CircleAlert size={18} className="animate-pulse" />
                     </div>
                 )}
             </div>

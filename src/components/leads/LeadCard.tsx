@@ -26,56 +26,60 @@ export const LeadCard: React.FC<LeadCardProps> = ({
         <button
             onClick={onClick}
             className={`
-        w-full text-left p-4 rounded-2xl border transition-all duration-300 relative overflow-hidden group
+        w-full text-left p-5 rounded-[24px] border transition-all duration-500 relative overflow-hidden group
         ${active
-                    ? 'bg-accent/5 border-accent/40 shadow-[0_0_20px_rgba(46,255,161,0.05)]'
-                    : 'bg-bg-card border-border hover:border-accent/30'}
+                    ? 'bg-accent/10 border-accent/40 shadow-[0_0_20px_rgba(46,255,161,0.1)]'
+                    : 'glass-card border-white/5 hover:bg-white/[0.04] hover:border-white/10'}
       `}
         >
-            {active && <div className="absolute left-0 top-0 bottom-0 w-1 bg-accent shadow-[0_0_10px_rgba(46,255,161,0.5)]"></div>}
+            {active && <div className="absolute left-0 top-0 bottom-0 w-1 bg-accent shadow-[0_0_15px_rgba(46,255,161,0.4)]"></div>}
 
-            <div className="flex justify-between items-start mb-2">
+            <div className="flex justify-between items-start mb-3">
                 <div className="min-w-0">
-                    <h4 className={`font-bold leading-none text-white truncate ${isCompact ? 'text-xs' : 'text-sm'}`}>
+                    <h4 className={`font-black tracking-tight text-white truncate ${isCompact ? 'text-sm' : 'text-base'}`}>
                         {lead.first_name || lead.last_name ? `${lead.first_name} ${lead.last_name}` : 'New Lead'}
                     </h4>
-                    <div className="flex items-center gap-1.5 mt-1.5">
-                        <Phone size={10} className="text-accent/50" />
-                        <p className="text-[10px] text-accent/70 font-mono tracking-tight truncate">
+                    <div className="flex items-center gap-2 mt-2">
+                        <div className="w-5 h-5 rounded-lg bg-white/5 flex items-center justify-center">
+                            <Phone size={10} className="text-accent" />
+                        </div>
+                        <p className="text-[10px] text-muted font-bold tracking-widest uppercase">
                             {lead.phone}
                         </p>
                     </div>
                     {lead.company && (
-                        <div className="flex items-center gap-1.5 mt-1">
-                            <Building2 size={10} className="text-muted/50" />
-                            <p className="text-[10px] text-muted font-mono uppercase tracking-tight truncate">
+                        <div className="flex items-center gap-2 mt-1.5">
+                            <div className="w-5 h-5 rounded-lg bg-white/5 flex items-center justify-center">
+                                <Building2 size={10} className="text-muted" />
+                            </div>
+                            <p className="text-[10px] text-muted/60 font-bold uppercase tracking-widest truncate">
                                 {lead.company}
                             </p>
                         </div>
                     )}
                 </div>
-                {!isCompact && <Badge variant="temperature" value={lead.temperature} />}
+                {!isCompact && <div className="scale-90 origin-top-right"><Badge variant="temperature" value={lead.temperature} /></div>}
             </div>
 
             {!isCompact && (
-                <div className="flex flex-wrap items-center gap-2 mt-4">
-                    <Badge variant="outcome" value={lead.outcome} label="Outcome" />
-                    {showState && state && <Badge variant="state" value={state.current_state} label="State" />}
+                <div className="flex flex-wrap items-center gap-2 mt-5">
+                    <div className="scale-90 origin-left"><Badge variant="outcome" value={lead.outcome} label="Outcome" /></div>
+                    {showState && state && <div className="scale-90 origin-left"><Badge variant="state" value={state.current_state} label="State" /></div>}
                 </div>
             )}
 
-            <div className="flex items-center justify-between mt-4">
-                <div className="flex items-center gap-2">
-                    <span className="text-[9px] font-mono text-muted uppercase tracking-tighter">
+            <div className="flex items-center justify-between mt-5">
+                <div className="flex items-center gap-3">
+                    <span className="text-[10px] font-black text-muted/40 uppercase tracking-[0.1em]">
                         {Math.floor((new Date().getTime() - new Date(lead.created_at).getTime()) / 60000)}m ago
                     </span>
                     {/* BANT Quick Indicators */}
                     {state && (
-                        <div className="flex items-center gap-1 ml-2">
-                            <Wallet size={10} className={state.bant_budget ? 'text-accent' : 'text-muted/20'} />
-                            <UserCheck size={10} className={state.bant_authority ? 'text-accent' : 'text-muted/20'} />
-                            <Target size={10} className={state.bant_need ? 'text-accent' : 'text-muted/20'} />
-                            <Clock size={10} className={state.bant_timeline ? 'text-accent' : 'text-muted/20'} />
+                        <div className="flex items-center gap-2 py-1 px-2 rounded-lg bg-white/[0.03] border border-white/5">
+                            <Wallet size={12} className={state.bant_budget ? 'text-accent drop-shadow-[0_0_5px_rgba(46,255,161,0.5)]' : 'text-muted/10'} />
+                            <UserCheck size={12} className={state.bant_authority ? 'text-accent drop-shadow-[0_0_5px_rgba(46,255,161,0.5)]' : 'text-muted/10'} />
+                            <Target size={12} className={state.bant_need ? 'text-accent drop-shadow-[0_0_5px_rgba(46,255,161,0.5)]' : 'text-muted/10'} />
+                            <Clock size={12} className={state.bant_timeline ? 'text-accent drop-shadow-[0_0_5px_rgba(46,255,161,0.5)]' : 'text-muted/10'} />
                         </div>
                     )}
                 </div>
@@ -84,9 +88,9 @@ export const LeadCard: React.FC<LeadCardProps> = ({
                 )}
             </div>
 
-            <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-white/5">
+            <div className="absolute bottom-0 left-0 right-0 h-1 bg-white/[0.02]">
                 <div
-                    className={`h-full transition-all duration-1000 ${lead.signal_score >= 7 ? 'bg-accent' : lead.signal_score >= 4 ? 'bg-amber-500' : 'bg-red-500'
+                    className={`h-full transition-all duration-1000 shadow-[0_-5px_10px_rgba(0,0,0,0.2)] ${lead.signal_score >= 7 ? 'bg-accent' : lead.signal_score >= 4 ? 'bg-amber-500' : 'bg-red-500'
                         }`}
                     style={{ width: `${lead.signal_score * 10}%` }}
                 ></div>
